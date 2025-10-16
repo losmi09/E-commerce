@@ -1,0 +1,29 @@
+import { Router } from 'express';
+import * as userController from '../controllers/userController.js';
+import * as authController from '../controllers/authController.js';
+
+export const router = Router();
+
+router.use(authController.protect);
+
+router.get('/me', userController.getMe, userController.getUser);
+
+router.patch(
+  '/updateMe',
+  userController.uploadUserPhoto,
+  userController.resizeuserPhoto,
+  userController.updateMe
+);
+
+router.patch('/deactivateMe', userController.deactivateMe);
+
+router.delete('/deleteMe', userController.deleteMe);
+
+router.use(authController.restrictTo('admin'));
+
+router.get('/', userController.getAllUsers);
+
+router
+  .route('/:id')
+  .get(userController.getUser)
+  .delete(userController.deleteUser);

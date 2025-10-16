@@ -1,0 +1,58 @@
+import express from 'express';
+import morgan from 'morgan';
+import compression from 'compression';
+import qs from 'qs';
+import cors from 'cors';
+import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
+import { xss } from 'express-xss-sanitizer';
+import hpp from 'hpp';
+import AppError from './utils/appError.js';
+import globalErrorHandler from './controllers/errorController.js';
+import { router as productRouter } from './routes/productRoutes.js';
+import { router as authRouter } from './routes/authRoutes.js';
+import { router as userRouter } from './routes/userRoutes.js';
+
+const app = express();
+
+app.use(helmet());
+
+app.use(cors());
+
+const limit = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: 'Too many requests. Please try again later',
+});
+
+const authLimit = rateLimit({
+  max: 5,
+  windowMs: 60 * 60 * 1000,
+  message: 'Too many requests. Please try again later',
+});
+
+app.use('/api', limit);
+
+app.use(express.json({ limit: '10kb' }));
+
+app.use(xss());
+
+app.set('query parser', str => qs.parse(str));
+
+if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
+
+app.use(hpp());
+
+app.use(compression());
+
+app.use('/api/v1/products', productRouter);
+app.use('/api/v1/auth', authLimit, authRouter);
+app.use('/api/v1/users', userRouter);
+
+app.use((req, res, next) =>
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404))
+);
+
+app.use(globalErrorHandler);
+
+export default app;
