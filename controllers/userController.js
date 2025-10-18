@@ -100,7 +100,7 @@ export const deactivateMe = catchAsync(async (req, res, next) => {
       id: req.user.id,
     },
     data: {
-      isActive: false,
+      is_active: false,
     },
   });
 
@@ -137,7 +137,7 @@ export const deleteMe = catchAsync(async (req, res, next) => {
 export const getAllUsers = catchAsync(async (req, res, next) => {
   const users = await prisma.user.findMany({
     where: {
-      isActive: true,
+      is_active: true,
     },
   });
 

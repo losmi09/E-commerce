@@ -19,8 +19,8 @@ export const removeFromOutput = user => {
     user.password_reset_token_expiry =
     user.email_verification_token =
     user.email_verification_token_expiry =
-    user.isVerified =
-    user.isActive =
+    user.is_verified =
+    user.is_active =
       undefined;
 };
 
@@ -140,7 +140,7 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
       id: user.id,
     },
     data: {
-      isVerified: true,
+      is_verified: true,
       email_verification_token: null,
       email_verification_token_expiry: null,
     },
@@ -302,7 +302,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     },
     data: {
       password: hashedPassword,
-      password_changed_at: Date.now() - 1000,
+      password_changed_at: new Date(Date.now() - 1000),
       password_reset_token: null,
       password_reset_token_expiry: null,
     },
