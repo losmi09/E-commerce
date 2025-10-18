@@ -2,32 +2,12 @@ import prisma from '../server.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import productSchema from '../schemas-validation/productSchema.js';
+import filterAndSort from '../utils/filtering-sorting.js';
 
 export const getAllProducts = catchAsync(async (req, res, next) => {
-  const { page = 1, limit = 100 } = req.query;
-
-  const skip = (+page - 1) * +limit;
-
-  const excludeFromQuery = ['page', 'limit', 'sort'];
-
-  const query = structuredClone(req.query);
-
-  if (!query.sort) query.sort = 'price';
-
-  const sortingBy = query.sort.split(',');
-
-  const sorting = Array.from({ length: sortingBy.length }, () => {
-    return {};
-  });
-
-  query.sort.split(',').forEach((el, i) => {
-    if (el.includes('-')) sorting[i][el.slice(1)] = 'desc';
-    else sorting[i][el] = 'asc';
-  });
-
-  excludeFromQuery.forEach(el => delete query[el]);
-
   try {
+    const { skip, limit, query, sorting } = filterAndSort(req.query, 'price');
+
     const products = await prisma.product.findMany({
       skip,
       take: +limit,
@@ -36,6 +16,7 @@ export const getAllProducts = catchAsync(async (req, res, next) => {
       },
       orderBy: sorting,
     });
+
     res.status(200).json({
       status: 'success',
       results: products.length,
