@@ -27,8 +27,6 @@ export const getAllProducts = catchAsync(async (req, res, next) => {
 
   excludeFromQuery.forEach(el => delete query[el]);
 
-  console.log(query);
-
   try {
     const products = await prisma.product.findMany({
       skip,
