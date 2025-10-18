@@ -1,8 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Prisma schema for an e-commerce project
 
 generator client {
   provider = "prisma-client-js"
@@ -14,26 +10,40 @@ datasource db {
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique @db.VarChar(255)
+  id          Int       @id @default(autoincrement())
+  name        String    @unique @db.VarChar(255)
   description String?
-  price       Decimal  @db.Decimal
-  createdAt   DateTime @default(now())
+  price       Decimal   @db.Decimal
+  createdAt   DateTime  @default(now())
+  category_id  Int?
+
+  // Relations
+  category    Category?  @relation(fields: [category_id], references: [id])
+}
+
+model Category {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique @db.VarChar(255)
+  description String?
+  image       String?    @db.VarChar(255)
+
+  // Relations
+  products    Product[]
 }
 
 model User {
-  id         Int    @id @default(autoincrement())
-  first_name String @db.VarChar(255)
-  last_name  String @db.VarChar(255)
-  email      String @db.VarChar(255) @unique
-  photo      String @default("default.jpg")
-  password   String @db.VarChar(255)
-  role       String @db.VarChar(255)
-  password_reset_token String?
-  password_reset_token_expiry DateTime?
-  email_verification_token String?
-  email_verification_token_expiry DateTime?
-  isVerified Boolean @default(false)
-  password_changed_at DateTime?
-  isActive Boolean @default(true)
+  id                            Int       @id @default(autoincrement())
+  first_name                    String    @db.VarChar(255)
+  last_name                     String    @db.VarChar(255)
+  email                         String    @unique @db.VarChar(255)
+  photo                         String    @default("default.jpg")
+  password                      String    @db.VarChar(255)
+  role                          String    @default("user") @db.VarChar(255)
+  password_reset_token            String?
+  password_reset_token_expiry      DateTime?
+  email_verification_token        String?
+  email_verification_token_expiry  DateTime?
+  is_verified                    Boolean   @default(false)
+  password_changed_at             DateTime?
+  is_active                      Boolean   @default(true)
 }
