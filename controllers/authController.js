@@ -12,7 +12,7 @@ const signToken = id =>
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
-export const removeFromOutput = user => {
+export const sanitizeOutput = user => {
   user.password =
     user.password_changed_at =
     user.password_reset_token =
@@ -33,7 +33,7 @@ const hashToken = token =>
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user.id);
 
-  removeFromOutput(user);
+  sanitizeOutput(user);
 
   const cookieOptions = {
     httpOnly: true,
@@ -283,7 +283,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 
   if (!user) return next(new AppError('Token is invalid or has expired', 400));
 
-  if (password.length < 8)
+  if (typeof password === 'string' && password.length < 8)
     return next(
       new AppError('password length must be at least 8 characters long', 400)
     );
@@ -334,7 +334,7 @@ export const updateMyPassword = catchAsync(async (req, res, next) => {
   if (await userModel.comparePasswords(password, user.password))
     return next(new AppError('New password cannot be the current one', 400));
 
-  if (password.length < 8)
+  if (typeof password === 'string' && password.length < 8)
     return next(
       new AppError('password length must be at least 8 characters long', 400)
     );
