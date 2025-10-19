@@ -4,8 +4,9 @@ import sharp from 'sharp';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import prisma from '../server.js';
-import { removeFromOutput } from './authController.js';
+import { sanitizeOutput } from './authController.js';
 import { comparePasswords } from '../models/userModel.js';
+import * as factory from './handlerFactory.js';
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -84,7 +85,7 @@ export const updateMe = catchAsync(async (req, res, next) => {
     },
   });
 
-  removeFromOutput(updatedUser);
+  sanitizeOutput(updatedUser);
 
   res.status(200).json({
     status: 'success',
@@ -134,49 +135,7 @@ export const deleteMe = catchAsync(async (req, res, next) => {
   res.status(204).end();
 });
 
-export const getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await prisma.user.findMany({
-    where: {
-      is_active: true,
-    },
-  });
-
-  users.forEach(user => removeFromOutput(user));
-
-  res.status(200).json({
-    status: 'success',
-    results: users.length,
-    data: {
-      users,
-    },
-  });
-});
-
-export const getUser = catchAsync(async (req, res, next) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: +req.params.id,
-    },
-  });
-
-  if (!user) return next(new AppError('No user found with that ID', 404));
-
-  removeFromOutput(user);
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      user,
-    },
-  });
-});
-
-export const deleteUser = catchAsync(async (req, res, next) => {
-  await prisma.user.delete({
-    where: {
-      id: +req.params.id,
-    },
-  });
-
-  res.status(204).end();
-});
+export const getAllUsers = factory.getAll('user', 'id');
+export const getUser = factory.getOne('user');
+export const updateUser = factory.updateOne('user');
+export const deleteUser = factory.deleteOne('user');
