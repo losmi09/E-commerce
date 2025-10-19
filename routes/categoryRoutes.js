@@ -18,4 +18,8 @@ router.use(authController.protect);
 router
   .route('/:id')
   .get(categoryController.getCategory)
-  .patch(authController.restrictTo('admin'), categoryController.updateCategory);
+  .patch(authController.restrictTo('admin'), categoryController.updateCategory)
+  .delete(
+    authController.restrictTo('admin'),
+    categoryController.deleteCategory
+  );
