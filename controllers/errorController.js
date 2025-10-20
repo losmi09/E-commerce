@@ -12,6 +12,12 @@ const handleUniqueConstraint = err => {
   return new AppError(message, 400);
 };
 
+const handleViolatedFkey = err => {
+  const { constraint } = err.meta;
+  const fieldName = constraint.split('_')[1];
+  return new AppError(`${fieldName} with that ID does not exist`, 404);
+};
+
 const handleNotFoundRecord = err => {
   const { modelName } = err.meta;
   const message = `No ${modelName} found with that ID`;
@@ -54,6 +60,7 @@ const globalErrorHandler = (err, req, res, next) => {
     if (err.message.includes('Unique constraint'))
       error = handleUniqueConstraint(err);
     if (err.code === 'P2025') error = handleNotFoundRecord(err);
+    if (err.code === 'P2003') error = handleViolatedFkey(err);
     if (err.name === 'TokenExpiredError') error = handleExpiredToken();
     if (
       err.name === 'JsonWebTokenError' || // err instanceof SyntaxError
