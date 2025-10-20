@@ -152,7 +152,7 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
   });
 });
 
-export const logout = catchAsync(async (req, res, next) => {
+export const logout = catchAsync(async (req, res) => {
   res.clearCookie('jwt', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
