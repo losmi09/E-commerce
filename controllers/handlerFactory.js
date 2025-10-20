@@ -80,22 +80,28 @@ const validateBody = (model, reqBody) => {
   return { error, value };
 };
 
+const camelToSnakeCase = validatedBody => {
+  const convertCase = str =>
+    str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+
+  const values = Object.values(validatedBody);
+
+  const snakeCaseKeys = Object.keys(validatedBody).map(key => convertCase(key));
+
+  const newValue = {};
+
+  snakeCaseKeys.forEach((key, i) => {
+    newValue[key] = values[i];
+  });
+
+  return newValue;
+};
+
 export const createOne = model =>
   catchAsync(async (req, res, next) => {
     const { error, value } = validateBody(model, req.body);
 
-    const camelToSnakeCase = str =>
-      str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-
-    const values = Object.values(value);
-
-    const snakeCaseKeys = Object.keys(value).map(key => camelToSnakeCase(key));
-
-    const newValue = {};
-
-    snakeCaseKeys.forEach((key, i) => {
-      newValue[key] = values[i];
-    });
+    const newValue = camelToSnakeCase(value);
 
     if (error) {
       const errorMessage = error.details[0].message.replaceAll('"', '');
@@ -127,12 +133,14 @@ export const updateOne = model =>
 
     if (errorMessage) return next(new AppError(errorMessage, 400));
 
+    const newValue = camelToSnakeCase(value);
+
     const updatedDoc = await prisma[model].update({
       where: {
         id: +req.params.id,
       },
       data: {
-        ...value,
+        ...newValue,
       },
     });
 
