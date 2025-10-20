@@ -11,6 +11,7 @@ export const getAll = (model, defaultSort) =>
   catchAsync(async (req, res, next) => {
     try {
       const modelNamePlural = pluralize(model);
+
       const { skip, limit, query, sorting } = filterAndSort(
         req.query,
         defaultSort
@@ -42,10 +43,15 @@ export const getAll = (model, defaultSort) =>
 
 export const getOne = model =>
   catchAsync(async (req, res, next) => {
+    let include = {};
+
+    if (model === 'category') include = { products: true };
+
     const doc = await prisma[model].findUnique({
       where: {
         id: +req.params.id,
       },
+      include,
     });
 
     if (!doc) return next(new AppError(`No ${model} found with that ID`, 404));
@@ -63,9 +69,11 @@ export const getOne = model =>
 const validateBody = (model, reqBody) => {
   let validation;
 
-  if (model === 'product') validation = productSchema.validate(reqBody);
+  if (model === 'product')
+    validation = productSchema.validate(reqBody, { abortEarly: false });
 
-  if (model === 'category') validation = categorySchema.validate(reqBody);
+  if (model === 'category')
+    validation = categorySchema.validate(reqBody, { abortEarly: false });
 
   const { error, value } = validation;
 
@@ -76,13 +84,26 @@ export const createOne = model =>
   catchAsync(async (req, res, next) => {
     const { error, value } = validateBody(model, req.body);
 
+    const camelToSnakeCase = str =>
+      str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+
+    const values = Object.values(value);
+
+    const snakeCaseKeys = Object.keys(value).map(key => camelToSnakeCase(key));
+
+    const newValue = {};
+
+    snakeCaseKeys.forEach((key, i) => {
+      newValue[key] = values[i];
+    });
+
     if (error) {
       const errorMessage = error.details[0].message.replaceAll('"', '');
       return next(new AppError(errorMessage, 400));
     }
 
     const newDoc = await prisma[model].create({
-      data: value,
+      data: newValue,
     });
 
     res.status(201).json({
@@ -97,10 +118,14 @@ export const updateOne = model =>
   catchAsync(async (req, res, next) => {
     const { error, value } = validateBody(model, req.body);
 
-    const errorMessage = error?.details[0].message;
+    let errorMessage;
 
-    if (error && !errorMessage.endsWith('required'))
-      return next(new AppError(errorMessage, 400));
+    error.details.forEach(err => {
+      if (!err.message.endsWith('required'))
+        errorMessage = err.message.replaceAll('"', '');
+    });
+
+    if (errorMessage) return next(new AppError(errorMessage, 400));
 
     const updatedDoc = await prisma[model].update({
       where: {
@@ -111,7 +136,7 @@ export const updateOne = model =>
       },
     });
 
-    if (model === 'user') sanitizeOutput(user);
+    if (model === 'user') sanitizeOutput(updatedDoc);
 
     res.status(200).json({
       status: 'success',
@@ -122,7 +147,7 @@ export const updateOne = model =>
   });
 
 export const deleteOne = model =>
-  catchAsync(async (req, res, next) => {
+  catchAsync(async (req, res) => {
     await prisma[model].delete({
       where: {
         id: +req.params.id,
