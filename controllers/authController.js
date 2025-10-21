@@ -75,6 +75,12 @@ export const signup = catchAsync(async (req, res, next) => {
     },
   });
 
+  await prisma.cart.create({
+    data: {
+      user_id: newUser.id,
+    },
+  });
+
   // const verificationToken = await userModel.createToken(newUser, 'email');
 
   // const verificationUrl = getEmailUrl(req, 'verifyEmail', verificationToken);
