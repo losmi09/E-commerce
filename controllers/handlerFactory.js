@@ -21,9 +21,7 @@ export const getAll = (model, defaultSort) =>
       let include;
 
       if (model === 'cart') {
-        include = { items: true };
         query.user_id = req.user.id;
-        console.log(query);
       }
 
       const doc = await prisma[model].findMany({
@@ -57,16 +55,33 @@ export const getOne = model =>
 
     if (model === 'category') include = { products: true };
 
-    const doc = await prisma[model].findUnique({
-      where: {
-        id: +req.params.id,
-      },
+    let findBy = { id: +req.params.id };
+
+    let omit = {};
+
+    if (model === 'cart') {
+      findBy = { user_id: +req.user.id };
+      include = { items: { include: { product: true } } };
+      omit = { id: true, user_id: true };
+    }
+
+    const doc = await prisma[model].findMany({
+      where: findBy,
       include,
+      omit,
     });
 
-    if (!doc) return next(new AppError(`No ${model} found with that ID`, 404));
+    console.log(doc);
+
+    if (doc.length === 0)
+      return next(new AppError(`No ${model} found with that ID`, 404));
 
     if (model === 'user') sanitizeOutput(doc);
+
+    if (model === 'cart')
+      doc[0].items.forEach(item => {
+        item.cart_id = item.product_id = item.product_id = undefined;
+      });
 
     res.status(200).json({
       status: 'success',
@@ -85,7 +100,7 @@ const validateBody = (model, reqBody) => {
   if (model === 'category')
     validation = categorySchema.validate(reqBody, { abortEarly: false });
 
-  if (model === 'cartItemSchema')
+  if (model === 'Cart_Item')
     validation = cartItemSchema.validate(reqBody, { abortEarly: false });
 
   const { error, value } = validation;
@@ -119,6 +134,16 @@ export const createOne = model =>
     if (error) {
       const errorMessage = error.details[0].message.replaceAll('"', '');
       return next(new AppError(errorMessage, 400));
+    }
+
+    if (model === 'Cart_Item') {
+      const [userCart] = await prisma.cart.findMany({
+        where: {
+          user_id: req.user.id,
+        },
+      });
+
+      newValue.cart_id = userCart.id;
     }
 
     const newDoc = await prisma[model].create({
