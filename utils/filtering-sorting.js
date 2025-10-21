@@ -22,7 +22,6 @@ const filterAndSort = (reqQuery, defaultSort) => {
 
   Object.entries(query).forEach(entry => {
     const [key, value] = entry;
-    console.log(key, value);
     if (Number.isFinite(+value)) query[key] = +value;
   });
 
