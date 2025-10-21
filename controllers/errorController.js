@@ -15,7 +15,7 @@ const handleUniqueConstraint = err => {
 const handleViolatedFkey = err => {
   const { constraint } = err.meta;
   const fieldName = constraint.split('_')[1];
-  return new AppError(`${fieldName} with that ID does not exist`, 404);
+  return new AppError(`No ${fieldName} found with that ID`, 404);
 };
 
 const handleNotFoundRecord = err => {
