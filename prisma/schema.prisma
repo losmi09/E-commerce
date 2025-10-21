@@ -10,40 +10,58 @@ datasource db {
 }
 
 model Product {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique @db.VarChar(255)
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(255)
   description String?
-  price       Decimal   @db.Decimal
-  createdAt   DateTime  @default(now())
-  category_id  Int?
+  price       Decimal  @db.Decimal
+  createdAt   DateTime @default(now())
+  category_id Int?
 
   // Relations
-  category    Category?  @relation(fields: [category_id], references: [id])
+  category   Category?    @relation(fields: [category_id], references: [id])
+  Cart_Items Cart_Items[]
 }
 
 model Category {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique @db.VarChar(255)
+  id          Int     @id @default(autoincrement())
+  name        String  @unique @db.VarChar(255)
   description String?
-  image       String?    @db.VarChar(255)
+  image       String? @db.VarChar(255)
 
   // Relations
-  products    Product[]
+  products Product[]
 }
 
 model User {
-  id                            Int       @id @default(autoincrement())
-  first_name                    String    @db.VarChar(255)
-  last_name                     String    @db.VarChar(255)
-  email                         String    @unique @db.VarChar(255)
-  photo                         String    @default("default.jpg")
-  password                      String    @db.VarChar(255)
-  role                          String    @default("user") @db.VarChar(255)
+  id                              Int       @id @default(autoincrement())
+  first_name                      String    @db.VarChar(255)
+  last_name                       String    @db.VarChar(255)
+  email                           String    @unique @db.VarChar(255)
+  photo                           String    @default("default.jpg")
+  password                        String    @db.VarChar(255)
+  role                            String    @default("user") @db.VarChar(255)
   password_reset_token            String?
-  password_reset_token_expiry      DateTime?
+  password_reset_token_expiry     DateTime?
   email_verification_token        String?
-  email_verification_token_expiry  DateTime?
-  is_verified                    Boolean   @default(false)
+  email_verification_token_expiry DateTime?
+  is_verified                     Boolean   @default(false)
   password_changed_at             DateTime?
-  is_active                      Boolean   @default(true)
+  is_active                       Boolean   @default(true)
+  cart                            Cart[]
+}
+
+model Cart {
+  id      Int          @id @default(autoincrement())
+  user_id Int
+  user    User         @relation(fields: [user_id], references: [id])
+  items   Cart_Items[]
+}
+
+model Cart_Items {
+  cart_id    Int
+  cart       Cart    @relation(fields: [cart_id], references: [id])
+  product_id Int
+  product    Product @relation(fields: [product_id], references: [id])
+
+  @@id([cart_id, product_id])
 }
