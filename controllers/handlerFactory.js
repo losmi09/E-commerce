@@ -4,6 +4,7 @@ import AppError from '../utils/appError.js';
 import filterAndSort from '../utils/filtering-sorting.js';
 import productSchema from '../schemas-validation/productSchema.js';
 import categorySchema from '../schemas-validation/categorySchema.js';
+import cartItemSchema from '../schemas-validation/cartItemSchema.js';
 import { sanitizeOutput } from './authController.js';
 import prisma from '../server.js';
 
@@ -17,12 +18,21 @@ export const getAll = (model, defaultSort) =>
         defaultSort
       );
 
+      let include;
+
+      if (model === 'cart') {
+        include = { items: true };
+        query.user_id = req.user.id;
+        console.log(query);
+      }
+
       const doc = await prisma[model].findMany({
         skip,
         take: +limit,
         where: {
           ...query,
         },
+        include,
         orderBy: sorting,
       });
 
@@ -74,6 +84,9 @@ const validateBody = (model, reqBody) => {
 
   if (model === 'category')
     validation = categorySchema.validate(reqBody, { abortEarly: false });
+
+  if (model === 'cartItemSchema')
+    validation = cartItemSchema.validate(reqBody, { abortEarly: false });
 
   const { error, value } = validation;
 
