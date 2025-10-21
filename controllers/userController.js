@@ -95,7 +95,7 @@ export const updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
-export const deactivateMe = catchAsync(async (req, res, next) => {
+export const deactivateMe = catchAsync(async (req, res) => {
   await prisma.user.update({
     where: {
       id: req.user.id,
