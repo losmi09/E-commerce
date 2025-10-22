@@ -13,6 +13,7 @@ import { router as productRouter } from './routes/productRoutes.js';
 import { router as authRouter } from './routes/authRoutes.js';
 import { router as userRouter } from './routes/userRoutes.js';
 import { router as categoryRouter } from './routes/categoryRoutes.js';
+import { router as cartRouter } from './routes/cartRoutes.js';
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.use('/api/v1/products', productRouter);
 app.use('/api/v1/auth', authLimit, authRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/categories', categoryRouter);
+app.use('/api/v1/cart', cartRouter);
 
 app.use((req, res, next) =>
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404))
