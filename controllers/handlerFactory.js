@@ -65,23 +65,23 @@ export const getOne = model =>
       omit = { id: true, user_id: true };
     }
 
-    const doc = await prisma[model].findMany({
+    let doc = await prisma[model].findMany({
       where: findBy,
       include,
       omit,
     });
 
-    console.log(doc);
+    console.log(doc[0]);
 
     if (doc.length === 0)
       return next(new AppError(`No ${model} found with that ID`, 404));
 
     if (model === 'user') sanitizeOutput(doc);
 
-    if (model === 'cart')
-      doc[0].items.forEach(item => {
-        item.cart_id = item.product_id = item.product_id = undefined;
-      });
+    if (model === 'cart') doc = doc[0];
+    doc.items.forEach(item => {
+      item.cart_id = item.product_id = item.product_id = undefined;
+    });
 
     res.status(200).json({
       status: 'success',
