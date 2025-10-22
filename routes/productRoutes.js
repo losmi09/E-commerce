@@ -1,8 +1,11 @@
 import { Router } from 'express';
+import { router as reviewRouter } from './reviewRoutes.js';
 import * as productController from '../controllers/productController.js';
 import * as authController from '../controllers/authController.js';
 
 export const router = Router();
+
+router.use('/:productId/reviews', reviewRouter);
 
 router
   .route('/')
