@@ -6,4 +6,12 @@ export const router = Router();
 
 router.use(authController.protect);
 
-router.route('/').get(cartController.getCart).post(cartController.addToCart);
+router
+  .route('/items')
+  .get(cartController.getCartItems)
+  .post(cartController.addToCart);
+
+router
+  .route('/items/:productId')
+  .get(cartController.getCartItem)
+  .delete(cartController.removeFromCart);
