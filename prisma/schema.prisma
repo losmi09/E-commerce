@@ -19,7 +19,7 @@ model Product {
 
   // Relations
   category   Category?    @relation(fields: [category_id], references: [id])
-  Cart_Items Cart_Items[]
+  Cart_Items Cart_Item[]
 }
 
 model Category {
@@ -54,14 +54,14 @@ model Cart {
   id      Int          @id @default(autoincrement())
   user_id Int
   user    User         @relation(fields: [user_id], references: [id])
-  items   Cart_Items[]
+  items   Cart_Item[]
 }
 
-model Cart_Items {
+model Cart_Item {
   cart_id    Int
   cart       Cart    @relation(fields: [cart_id], references: [id])
   product_id Int
   product    Product @relation(fields: [product_id], references: [id])
-
+  quantity Int @default(1)
   @@id([cart_id, product_id])
 }
