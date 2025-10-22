@@ -5,6 +5,7 @@ import filterAndSort from '../utils/filtering-sorting.js';
 import productSchema from '../schemas-validation/productSchema.js';
 import categorySchema from '../schemas-validation/categorySchema.js';
 import cartItemSchema from '../schemas-validation/cartItemSchema.js';
+import reviewSchema from '../schemas-validation/reviewSchema.js';
 import { sanitizeOutput } from './authController.js';
 import prisma from '../server.js';
 
@@ -31,6 +32,8 @@ export const getAll = (model, defaultSort) =>
         query.cart_id = usersCart.id;
         include = { product: true };
       }
+
+      if (model === 'review') query.product_id = +req.params.productId;
 
       const doc = await prisma[model].findMany({
         skip,
@@ -60,6 +63,8 @@ export const getAll = (model, defaultSort) =>
 export const getOne = model =>
   catchAsync(async (req, res, next) => {
     let include = {};
+
+    if (model === 'product') include = { reviews: true };
 
     if (model === 'category') include = { products: true };
 
@@ -99,6 +104,9 @@ const validateBody = (model, reqBody) => {
 
   if (model === 'Cart_Item')
     validation = cartItemSchema.validate(reqBody, { abortEarly: false });
+
+  if (model === 'review')
+    validation = reviewSchema.validate(reqBody, { abortEarly: false });
 
   const { error, value } = validation;
 
@@ -143,6 +151,11 @@ export const createOne = model =>
       newValue.cart_id = userCart.id;
     }
 
+    if (model === 'review') {
+      newValue.product_id = +req.params.productId;
+      newValue.user_id = req.user.id;
+    }
+
     const newDoc = await prisma[model].create({
       data: newValue,
     });
@@ -161,10 +174,11 @@ export const updateOne = model =>
 
     let errorMessage;
 
-    error.details.forEach(err => {
-      if (!err.message.endsWith('required'))
-        errorMessage = err.message.replaceAll('"', '');
-    });
+    if (error)
+      error.details.forEach(err => {
+        if (!err.message.endsWith('required'))
+          errorMessage = err.message.replaceAll('"', '');
+      });
 
     if (errorMessage) return next(new AppError(errorMessage, 400));
 
