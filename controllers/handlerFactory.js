@@ -70,8 +70,6 @@ export const getOne = model =>
       include = { product: true };
     }
 
-    console.log(12);
-
     let doc = await prisma[model].findMany({
       where: findBy,
       include,
