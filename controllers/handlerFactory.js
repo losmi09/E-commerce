@@ -24,6 +24,14 @@ export const getAll = (model, defaultSort) =>
         query.user_id = req.user.id;
       }
 
+      if (model === 'Cart_Item') {
+        const usersCart = await prisma.cart.findUnique({
+          where: { user_id: req.user.id },
+        });
+        query.cart_id = usersCart.id;
+        include = { product: true };
+      }
+
       const doc = await prisma[model].findMany({
         skip,
         take: +limit,
@@ -57,31 +65,22 @@ export const getOne = model =>
 
     let findBy = { id: +req.params.id };
 
-    let omit = {};
-
-    if (model === 'cart') {
-      findBy = { user_id: +req.user.id };
-      include = { items: { include: { product: true } } };
-      omit = { id: true, user_id: true };
+    if (model === 'Cart_Item') {
+      findBy = { product_id: +req.params.productId };
+      include = { product: true };
     }
+
+    console.log(12);
 
     let doc = await prisma[model].findMany({
       where: findBy,
       include,
-      omit,
     });
 
-    console.log(doc[0]);
-
-    if (doc.length === 0)
+    if (!doc || doc.length === 0)
       return next(new AppError(`No ${model} found with that ID`, 404));
 
     if (model === 'user') sanitizeOutput(doc);
-
-    if (model === 'cart') doc = doc[0];
-    doc.items.forEach(item => {
-      item.cart_id = item.product_id = item.product_id = undefined;
-    });
 
     res.status(200).json({
       status: 'success',
@@ -194,10 +193,12 @@ export const updateOne = model =>
 
 export const deleteOne = model =>
   catchAsync(async (req, res) => {
-    await prisma[model].delete({
-      where: {
-        id: +req.params.id,
-      },
+    let deleteBy = {};
+
+    if (model === 'Cart_Item') deleteBy = { product_id: +req.params.productId };
+
+    await prisma[model].deleteMany({
+      where: deleteBy,
     });
 
     res.status(204).end();
