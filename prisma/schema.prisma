@@ -18,8 +18,9 @@ model Product {
   category_id Int?
 
   // Relations
-  category   Category?    @relation(fields: [category_id], references: [id])
+  category   Category?   @relation(fields: [category_id], references: [id])
   Cart_Items Cart_Item[]
+  reviews    Review[]
 }
 
 model Category {
@@ -48,12 +49,13 @@ model User {
   password_changed_at             DateTime?
   is_active                       Boolean   @default(true)
   cart                            Cart[]
+  Review                          Review[]
 }
 
 model Cart {
-  id      Int          @id @default(autoincrement())
-  user_id Int @unique
-  user    User         @relation(fields: [user_id], references: [id])
+  id      Int         @id @default(autoincrement())
+  user_id Int         @unique
+  user    User        @relation(fields: [user_id], references: [id])
   items   Cart_Item[]
 }
 
@@ -62,6 +64,19 @@ model Cart_Item {
   cart       Cart    @relation(fields: [cart_id], references: [id])
   product_id Int
   product    Product @relation(fields: [product_id], references: [id])
-  quantity Int @default(1)
+  quantity   Int     @default(1)
+
   @@id([cart_id, product_id])
+}
+
+model Review {
+  id         Int     @id @default(autoincrement())
+  text       String  @db.VarChar(255)
+  rating     Int
+  product_id Int
+  product    Product @relation(fields: [product_id], references: [id])
+  user_id    Int
+  user       User    @relation(fields: [user_id], references: [id])
+
+  @@unique([product_id, user_id])
 }
