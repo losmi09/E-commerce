@@ -17,7 +17,7 @@ model Product {
   createdAt      DateTime @default(now())
   category_id    Int?
   reviewsCount   Int      @default(0)
-  reviewsAverage Decimal  @default(0) @db.Decimal(1, 1)
+  reviewsAverage Decimal  @default(0) @db.Decimal
 
   // Relations
   category   Category?   @relation(fields: [category_id], references: [id])
