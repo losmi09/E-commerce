@@ -4,6 +4,8 @@ import prisma from '../server.js';
 
 const checkIfReviewBelongsToUser = change =>
   catchAsync(async (req, res, next) => {
+    if (req.user.role === 'admin') return next();
+
     const review = await prisma.review.findUnique({
       where: { id: +req.params.id },
     });
