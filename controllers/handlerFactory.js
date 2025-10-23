@@ -44,15 +44,6 @@ export const getAll = (model, defaultSort) =>
         orderBy: sorting,
       });
 
-      // const aggregation = await prisma.review.aggregate({
-      //   _avg: { rating: true },
-      //   _count: { rating: true },
-      //   where: {
-      //     product_id: +req.params.productId,
-      //   },
-      // });
-      // console.log(aggregation);
-
       if (model === 'user') doc.forEach(user => sanitizeOutput(user));
 
       res.status(200).json({
