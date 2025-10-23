@@ -3,13 +3,11 @@ import camelcaseKeys from 'camelcase-keys';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import filterAndSort from '../utils/filtering-sorting.js';
-import productSchema from '../schemas-validation/productSchema.js';
-import categorySchema from '../schemas-validation/categorySchema.js';
-import cartItemSchema from '../schemas-validation/cartItemSchema.js';
-import reviewSchema from '../schemas-validation/reviewSchema.js';
 import { sanitizeOutput } from './authController.js';
 import getUsersCartId from '../utils/getUsersCardId.js';
 import calcReviewStats from '../utils/calculateReviews.js';
+import camelToSnakeCase from '../utils/camelToSnakeCase.js';
+import validateBody from '../utils/validateBody.js';
 import prisma from '../server.js';
 
 export const getAll = (model, defaultSort) =>
@@ -97,43 +95,6 @@ export const getOne = model =>
       },
     });
   });
-
-const validateBody = (model, reqBody) => {
-  let validation;
-
-  if (model === 'product')
-    validation = productSchema.validate(reqBody, { abortEarly: false });
-
-  if (model === 'category')
-    validation = categorySchema.validate(reqBody, { abortEarly: false });
-
-  if (model === 'Cart_Item')
-    validation = cartItemSchema.validate(reqBody, { abortEarly: false });
-
-  if (model === 'review')
-    validation = reviewSchema.validate(reqBody, { abortEarly: false });
-
-  const { error, value } = validation;
-
-  return { error, value };
-};
-
-const camelToSnakeCase = validatedBody => {
-  const convertCase = str =>
-    str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-
-  const values = Object.values(validatedBody);
-
-  const snakeCaseKeys = Object.keys(validatedBody).map(key => convertCase(key));
-
-  const newValue = {};
-
-  snakeCaseKeys.forEach((key, i) => {
-    newValue[key] = values[i];
-  });
-
-  return newValue;
-};
 
 export const createOne = model =>
   catchAsync(async (req, res, next) => {
