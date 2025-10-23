@@ -10,12 +10,14 @@ datasource db {
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique @db.VarChar(255)
-  description String?
-  price       Decimal  @db.Decimal
-  createdAt   DateTime @default(now())
-  category_id Int?
+  id             Int      @id @default(autoincrement())
+  name           String   @unique @db.VarChar(255)
+  description    String?
+  price          Decimal  @db.Decimal
+  createdAt      DateTime @default(now())
+  category_id    Int?
+  reviewsCount   Int      @default(0)
+  reviewsAverage Decimal  @default(0) @db.Decimal(1, 1)
 
   // Relations
   category   Category?   @relation(fields: [category_id], references: [id])
