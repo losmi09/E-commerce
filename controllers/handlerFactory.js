@@ -7,15 +7,8 @@ import categorySchema from '../schemas-validation/categorySchema.js';
 import cartItemSchema from '../schemas-validation/cartItemSchema.js';
 import reviewSchema from '../schemas-validation/reviewSchema.js';
 import { sanitizeOutput } from './authController.js';
+import getUsersCartId from '../utils/getUsersCardId.js';
 import prisma from '../server.js';
-
-const getUsersCartId = async req => {
-  const cart = await prisma.cart.findUnique({
-    where: { user_id: req.user.id },
-  });
-
-  return cart.id;
-};
 
 export const getAll = (model, defaultSort) =>
   catchAsync(async (req, res, next) => {
@@ -51,6 +44,15 @@ export const getAll = (model, defaultSort) =>
         orderBy: sorting,
       });
 
+      // const aggregation = await prisma.review.aggregate({
+      //   _avg: { rating: true },
+      //   _count: { rating: true },
+      //   where: {
+      //     product_id: +req.params.productId,
+      //   },
+      // });
+      // console.log(aggregation);
+
       if (model === 'user') doc.forEach(user => sanitizeOutput(user));
 
       res.status(200).json({
@@ -77,9 +79,10 @@ export const getOne = model =>
     let findBy = { id: +req.params.id };
 
     if (model === 'Cart_Item') {
-      const usersCartId = await getUsersCartId(req);
-
-      findBy = { product_id: +req.params.productId, cart_id: usersCartId };
+      findBy = {
+        product_id: +req.params.productId,
+        cart_id: await getUsersCartId(req),
+      };
 
       include = { product: true };
     }
@@ -150,15 +153,7 @@ export const createOne = model =>
       return next(new AppError(errorMessage, 400));
     }
 
-    if (model === 'Cart_Item') {
-      const [userCart] = await prisma.cart.findMany({
-        where: {
-          user_id: req.user.id,
-        },
-      });
-
-      newValue.cart_id = userCart.id;
-    }
+    if (model === 'Cart_Item') newValue.cart_id = await getUsersCartId(req);
 
     if (model === 'review') {
       newValue.product_id = +req.params.productId;
@@ -216,7 +211,11 @@ export const deleteOne = model =>
   catchAsync(async (req, res) => {
     let deleteBy = {};
 
-    if (model === 'Cart_Item') deleteBy = { product_id: +req.params.productId };
+    if (model === 'Cart_Item')
+      deleteBy = {
+        product_id: +req.params.productId,
+        cart_id: await getUsersCartId(req),
+      };
 
     await prisma[model].deleteMany({
       where: deleteBy,
