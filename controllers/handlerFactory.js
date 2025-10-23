@@ -9,6 +9,14 @@ import reviewSchema from '../schemas-validation/reviewSchema.js';
 import { sanitizeOutput } from './authController.js';
 import prisma from '../server.js';
 
+const getUsersCartId = async req => {
+  const cart = await prisma.cart.findUnique({
+    where: { user_id: req.user.id },
+  });
+
+  return cart.id;
+};
+
 export const getAll = (model, defaultSort) =>
   catchAsync(async (req, res, next) => {
     try {
@@ -26,10 +34,8 @@ export const getAll = (model, defaultSort) =>
       }
 
       if (model === 'Cart_Item') {
-        const usersCart = await prisma.cart.findUnique({
-          where: { user_id: req.user.id },
-        });
-        query.cart_id = usersCart.id;
+        query.cart_id = await getUsersCartId(req);
+
         include = { product: true };
       }
 
@@ -71,7 +77,10 @@ export const getOne = model =>
     let findBy = { id: +req.params.id };
 
     if (model === 'Cart_Item') {
-      findBy = { product_id: +req.params.productId };
+      const usersCartId = await getUsersCartId(req);
+
+      findBy = { product_id: +req.params.productId, cart_id: usersCartId };
+
       include = { product: true };
     }
 
