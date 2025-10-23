@@ -1,4 +1,5 @@
 import pluralize from 'pluralize';
+import camelcaseKeys from 'camelcase-keys';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import filterAndSort from '../utils/filtering-sorting.js';
@@ -51,7 +52,7 @@ export const getAll = (model, defaultSort) =>
         status: 'success',
         results: doc.length,
         data: {
-          [modelNamePlural]: doc,
+          [modelNamePlural]: camelcaseKeys(doc),
         },
       });
     } catch (err) {
@@ -79,7 +80,7 @@ export const getOne = model =>
       include = { product: true };
     }
 
-    let doc = await prisma[model].findMany({
+    let [doc] = await prisma[model].findMany({
       where: findBy,
       include,
     });
@@ -92,7 +93,7 @@ export const getOne = model =>
     res.status(200).json({
       status: 'success',
       data: {
-        [model]: doc,
+        [model]: camelcaseKeys(doc),
       },
     });
   });
@@ -156,10 +157,12 @@ export const createOne = model =>
       data: newValue,
     });
 
+    if (model === 'review') calcReviewStats(+req.params.productId);
+
     res.status(201).json({
       status: 'success',
       data: {
-        [model]: newDoc,
+        [model]: camelcaseKeys(newDoc),
       },
     });
   });
@@ -191,10 +194,12 @@ export const updateOne = model =>
 
     if (model === 'user') sanitizeOutput(updatedDoc);
 
+    if (model === 'review') calcReviewStats(+req.params.productId);
+
     res.status(200).json({
       status: 'success',
       data: {
-        [model]: updatedDoc,
+        [model]: camelcaseKeys(updatedDoc),
       },
     });
   });
@@ -212,6 +217,8 @@ export const deleteOne = model =>
     await prisma[model].deleteMany({
       where: deleteBy,
     });
+
+    if (model === 'review') calcReviewStats(+req.params.productId);
 
     res.status(204).end();
   });
