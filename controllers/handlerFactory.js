@@ -8,6 +8,7 @@ import cartItemSchema from '../schemas-validation/cartItemSchema.js';
 import reviewSchema from '../schemas-validation/reviewSchema.js';
 import { sanitizeOutput } from './authController.js';
 import getUsersCartId from '../utils/getUsersCardId.js';
+import calcReviewStats from '../utils/calculateReviews.js';
 import prisma from '../server.js';
 
 export const getAll = (model, defaultSort) =>
@@ -200,7 +201,7 @@ export const updateOne = model =>
 
 export const deleteOne = model =>
   catchAsync(async (req, res) => {
-    let deleteBy = {};
+    let deleteBy = { id: +req.params.id };
 
     if (model === 'Cart_Item')
       deleteBy = {
