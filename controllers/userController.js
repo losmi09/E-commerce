@@ -121,8 +121,6 @@ export const deleteMe = catchAsync(async (req, res, next) => {
     where: { id: +req.user.id },
   });
 
-  console.log(user);
-
   if (!(await comparePasswords(passwordCurrent, user.password)))
     return next(new AppError('Wrong password!', 401));
 
