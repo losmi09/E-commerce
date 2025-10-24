@@ -1,6 +1,6 @@
 import * as factory from './handlerFactory.js';
 
-export const getCartItems = factory.getAll('Cart_Item', 'cart_id');
-export const getCartItem = factory.getOne('Cart_Item');
-export const addToCart = factory.createOne('Cart_Item');
-export const removeFromCart = factory.deleteOne('Cart_Item');
+export const getCartItems = factory.getAll('cartItem', 'cartId');
+export const getCartItem = factory.getOne('cartItem');
+export const addToCart = factory.createOne('cartItem');
+export const removeFromCart = factory.deleteOne('cartItem');
