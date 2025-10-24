@@ -101,7 +101,7 @@ export const deactivateMe = catchAsync(async (req, res) => {
       id: req.user.id,
     },
     data: {
-      is_active: false,
+      isActive: false,
     },
   });
 
@@ -118,18 +118,20 @@ export const deleteMe = catchAsync(async (req, res, next) => {
     return next(new AppError('Please enter your password', 400));
 
   const user = await prisma.user.findUnique({
-    where: {
-      id: +req.user.id,
-    },
+    where: { id: +req.user.id },
   });
 
+  console.log(user);
+
   if (!(await comparePasswords(passwordCurrent, user.password)))
-    return next(new AppError('Passwords do not match', 401));
+    return next(new AppError('Wrong password!', 401));
+
+  await prisma.cart.delete({
+    where: { userId: +req.user.id },
+  });
 
   await prisma.user.delete({
-    where: {
-      id: req.user.id,
-    },
+    where: { id: +req.user.id },
   });
 
   res.status(204).end();
@@ -137,5 +139,4 @@ export const deleteMe = catchAsync(async (req, res, next) => {
 
 export const getAllUsers = factory.getAll('user', 'id');
 export const getUser = factory.getOne('user');
-export const updateUser = factory.updateOne('user');
 export const deleteUser = factory.deleteOne('user');
