@@ -12,7 +12,7 @@ const checkIfReviewBelongsToUser = change =>
 
     if (!review) return next(new AppError('No review found with that ID', 404));
 
-    if (review.user_id !== req.user.id)
+    if (review.userId !== req.user.id)
       return next(new AppError(`You can only ${change} your reviews`, 403));
 
     next();

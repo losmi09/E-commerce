@@ -14,13 +14,13 @@ const signToken = id =>
 
 export const sanitizeOutput = user => {
   user.password =
-    user.password_changed_at =
-    user.password_reset_token =
-    user.password_reset_token_expiry =
-    user.email_verification_token =
-    user.email_verification_token_expiry =
-    user.is_verified =
-    user.is_active =
+    user.passwordChangedAt =
+    user.passwordResetToken =
+    user.passwordResetTokenExpiry =
+    user.emailVerificationToken =
+    user.emailVerificationTokenExpiry =
+    user.isVerified =
+    user.isActive =
       undefined;
 };
 
@@ -67,8 +67,8 @@ export const signup = catchAsync(async (req, res, next) => {
 
   const newUser = await prisma.user.create({
     data: {
-      first_name: firstName,
-      last_name: lastName,
+      firstName,
+      lastName,
       email,
       password: hashedPassword,
       role: 'user',
@@ -77,7 +77,7 @@ export const signup = catchAsync(async (req, res, next) => {
 
   await prisma.cart.create({
     data: {
-      user_id: newUser.id,
+      userId: newUser.id,
     },
   });
 
@@ -101,8 +101,8 @@ export const signup = catchAsync(async (req, res, next) => {
   //       id: newUser.id,
   //     },
   //     data: {
-  //       email_verification_token: null,
-  //       email_verification_token_expiry: null,
+  //       emailVerificationToken: null,
+  //       emailVerificationTokenExpiry: null,
   //     },
   //   });
 
@@ -135,7 +135,7 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
 
   const [user] = await prisma.user.findMany({
     where: {
-      email_verification_token: hashedToken,
+      emailVerificationToken: hashedToken,
     },
   });
 
@@ -146,9 +146,9 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
       id: user.id,
     },
     data: {
-      is_verified: true,
-      email_verification_token: null,
-      email_verification_token_expiry: null,
+      isActive: true,
+      emailVerificationToken: null,
+      emailVerificationTokenExpiry: null,
     },
   });
 
@@ -199,8 +199,8 @@ export const protect = catchAsync(async (req, res, next) => {
     );
 
   if (
-    user.password_changed_at &&
-    userModel.checkForPasswordChange(decoded.iat, user.password_changed_at)
+    user.passwordChangedAt &&
+    userModel.checkForPasswordChange(decoded.iat, user.passwordChangedAt)
   )
     return next(
       new AppError("You've changed your password. Please sign in again", 401)
@@ -262,8 +262,8 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
         email,
       },
       data: {
-        password_reset_token: null,
-        password_reset_token_expiry: null,
+        passwordResetToken: null,
+        passwordResetTokenExpiry: null,
       },
     });
 
@@ -283,7 +283,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 
   const [user] = await prisma.user.findMany({
     where: {
-      password_reset_token: hashedToken,
+      passwordResetToken: hashedToken,
     },
   });
 
@@ -308,9 +308,9 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     },
     data: {
       password: hashedPassword,
-      password_changed_at: new Date(Date.now() - 1000),
-      password_reset_token: null,
-      password_reset_token_expiry: null,
+      passwordChangedAt: new Date(Date.now() - 1000),
+      passwordResetToken: null,
+      passwordResetTokenExpiry: null,
     },
   });
 
@@ -356,7 +356,7 @@ export const updateMyPassword = catchAsync(async (req, res, next) => {
     },
     data: {
       password: hashedPassword,
-      password_changed_at: new Date(Date.now() - 1000),
+      passwordChangedAt: new Date(Date.now() - 1000),
     },
   });
 

@@ -5,7 +5,7 @@ const calcReviewStats = async productId => {
     _avg: { rating: true },
     _count: { rating: true },
     where: {
-      product_id: productId,
+      productId,
     },
   });
 

@@ -6,7 +6,6 @@ import filterAndSort from '../utils/filtering-sorting.js';
 import { sanitizeOutput } from './authController.js';
 import getUsersCartId from '../utils/getUsersCardId.js';
 import calcReviewStats from '../utils/calculateReviews.js';
-import camelToSnakeCase from '../utils/camelToSnakeCase.js';
 import validateBody from '../utils/validateBody.js';
 import prisma from '../server.js';
 
@@ -22,17 +21,12 @@ export const getAll = (model, defaultSort) =>
 
       let include;
 
-      if (model === 'cart') {
-        query.user_id = req.user.id;
-      }
-
-      if (model === 'Cart_Item') {
-        query.cart_id = await getUsersCartId(req);
-
+      if (model === 'cartItem') {
+        query.cartId = await getUsersCartId(req);
         include = { product: true };
       }
 
-      if (model === 'review') query.product_id = +req.params.productId;
+      if (model === 'review') query.productId = +req.params.productId;
 
       const doc = await prisma[model].findMany({
         skip,
@@ -50,7 +44,7 @@ export const getAll = (model, defaultSort) =>
         status: 'success',
         results: doc.length,
         data: {
-          [modelNamePlural]: camelcaseKeys(doc),
+          [modelNamePlural]: doc,
         },
       });
     } catch (err) {
@@ -69,10 +63,10 @@ export const getOne = model =>
 
     let findBy = { id: +req.params.id };
 
-    if (model === 'Cart_Item') {
+    if (model === 'cartItem') {
       findBy = {
-        product_id: +req.params.productId,
-        cart_id: await getUsersCartId(req),
+        productId: +req.params.productId,
+        cartId: await getUsersCartId(req),
       };
 
       include = { product: true };
@@ -100,22 +94,20 @@ export const createOne = model =>
   catchAsync(async (req, res, next) => {
     const { error, value } = validateBody(model, req.body);
 
-    const newValue = camelToSnakeCase(value);
-
     if (error) {
       const errorMessage = error.details[0].message.replaceAll('"', '');
       return next(new AppError(errorMessage, 400));
     }
 
-    if (model === 'Cart_Item') newValue.cart_id = await getUsersCartId(req);
+    if (model === 'cartItem') value.cartId = await getUsersCartId(req);
 
     if (model === 'review') {
-      newValue.product_id = +req.params.productId;
-      newValue.user_id = req.user.id;
+      value.productId = +req.params.productId;
+      value.userId = req.user.id;
     }
 
     const newDoc = await prisma[model].create({
-      data: newValue,
+      data: value,
     });
 
     if (model === 'review') calcReviewStats(+req.params.productId);
@@ -123,7 +115,7 @@ export const createOne = model =>
     res.status(201).json({
       status: 'success',
       data: {
-        [model]: camelcaseKeys(newDoc),
+        [model]: newDoc,
       },
     });
   });
@@ -142,14 +134,12 @@ export const updateOne = model =>
 
     if (errorMessage) return next(new AppError(errorMessage, 400));
 
-    const newValue = camelToSnakeCase(value);
-
     const updatedDoc = await prisma[model].update({
       where: {
         id: +req.params.id,
       },
       data: {
-        ...newValue,
+        ...value,
       },
     });
 
@@ -160,7 +150,7 @@ export const updateOne = model =>
     res.status(200).json({
       status: 'success',
       data: {
-        [model]: camelcaseKeys(updatedDoc),
+        [model]: updatedDoc,
       },
     });
   });
@@ -169,10 +159,10 @@ export const deleteOne = model =>
   catchAsync(async (req, res) => {
     let deleteBy = { id: +req.params.id };
 
-    if (model === 'Cart_Item')
+    if (model === 'cartItem')
       deleteBy = {
-        product_id: +req.params.productId,
-        cart_id: await getUsersCartId(req),
+        productId: +req.params.productId,
+        cartId: await getUsersCartId(req),
       };
 
     await prisma[model].deleteMany({
