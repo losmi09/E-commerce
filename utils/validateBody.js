@@ -12,7 +12,7 @@ const validateBody = (model, reqBody) => {
   if (model === 'category')
     validation = categorySchema.validate(reqBody, { abortEarly: false });
 
-  if (model === 'Cart_Item')
+  if (model === 'cartItem')
     validation = cartItemSchema.validate(reqBody, { abortEarly: false });
 
   if (model === 'review')
