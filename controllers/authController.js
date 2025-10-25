@@ -9,6 +9,7 @@ import * as userModel from '../models/userModel.js';
 
 const signToken = id =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
+    algorithm: 'HS256',
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
@@ -185,7 +186,9 @@ export const protect = catchAsync(async (req, res, next) => {
       new AppError("You're logged out. Please log in to get access", 401)
     );
 
-  const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+  const decoded = await jwt.verify(token, process.env.JWT_SECRET, {
+    algorithms: ['HS256'],
+  });
 
   const user = await prisma.user.findUnique({
     where: {
