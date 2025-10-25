@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as categoryController from '../controllers/categoryController.js';
 import * as authController from '../controllers/authController.js';
+import isIdNumber from '../utils/isIdNumber.js';
 
 export const router = Router();
 
@@ -17,9 +18,14 @@ router.use(authController.protect);
 
 router
   .route('/:id')
-  .get(categoryController.getCategory)
-  .patch(authController.restrictTo('admin'), categoryController.updateCategory)
+  .get(isIdNumber, categoryController.getCategory)
+  .patch(
+    isIdNumber,
+    authController.restrictTo('admin'),
+    categoryController.updateCategory
+  )
   .delete(
+    isIdNumber,
     authController.restrictTo('admin'),
     categoryController.deleteCategory
   );

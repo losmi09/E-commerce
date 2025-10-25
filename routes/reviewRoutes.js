@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as reviewController from '../controllers/reviewController.js';
 import * as authController from '../controllers/authController.js';
 import checkIfReviewBelongsToUser from '../utils/reviewBelonging.js';
+import isIdNumber from '../utils/isIdNumber.js';
 
 export const router = Router({ mergeParams: true });
 
@@ -14,6 +15,14 @@ router
 
 router
   .route('/:id')
-  .get(reviewController.getReview)
-  .patch(checkIfReviewBelongsToUser('update'), reviewController.updateReview)
-  .delete(checkIfReviewBelongsToUser('delete'), reviewController.deleteReview);
+  .get(isIdNumber, reviewController.getReview)
+  .patch(
+    isIdNumber,
+    checkIfReviewBelongsToUser('update'),
+    reviewController.updateReview
+  )
+  .delete(
+    isIdNumber,
+    checkIfReviewBelongsToUser('delete'),
+    reviewController.deleteReview
+  );

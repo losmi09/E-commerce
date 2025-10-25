@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as userController from '../controllers/userController.js';
 import * as authController from '../controllers/authController.js';
+import isIdNumber from '../utils/isIdNumber.js';
 
 export const router = Router();
 
@@ -25,5 +26,5 @@ router.get('/', userController.getAllUsers);
 
 router
   .route('/:id')
-  .get(userController.getUser)
-  .delete(userController.deleteUser);
+  .get(isIdNumber, userController.getUser)
+  .delete(isIdNumber, userController.deleteUser);
