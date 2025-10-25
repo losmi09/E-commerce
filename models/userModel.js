@@ -16,14 +16,14 @@ export const createToken = async (user, field) => {
 
   if (field === 'password')
     setFields = {
-      password_reset_token: hashedToken,
-      password_reset_token_expiry: new Date(Date.now() + 60 * 60 * 1000),
+      passwordResetToken: hashedToken,
+      passwordResetTokenExpiry: new Date(Date.now() + 60 * 60 * 1000),
     };
 
   if (field === 'email')
     setFields = {
-      email_verification_token: hashedToken,
-      email_verification_token_expiry: new Date(Date.now() + 60 * 60 * 1000),
+      emailVerificationToken: hashedToken,
+      emailVerificationTokenExpiry: new Date(Date.now() + 60 * 60 * 1000),
     };
 
   await prisma.user.update({
