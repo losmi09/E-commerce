@@ -143,8 +143,6 @@ export const updateOne = model =>
       },
     });
 
-    console.log(updatedDoc);
-
     if (model === 'user') sanitizeOutput(updatedDoc);
 
     if (model === 'review') calcReviewStats(+req.params.productId);
