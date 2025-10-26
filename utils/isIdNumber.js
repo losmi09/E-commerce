@@ -1,8 +1,10 @@
 import AppError from './appError.js';
 
 const isIdNumber = (req, res, next) => {
-  if (!Number.isFinite(+req.params.id))
-    return next(new AppError(`Invalid ID: ${req.params.id}`, 400));
+  Object.values(req.params).forEach(value => {
+    if (!Number.isFinite(+value))
+      return next(new AppError(`Invalid ID: ${value}`, 400));
+  });
 
   next();
 };
