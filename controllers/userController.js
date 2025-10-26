@@ -28,7 +28,7 @@ const filterObj = (obj, ...allowedFields) => {
 
 const storage = multer.memoryStorage();
 
-const fileFilter = (req, file, cb) => {
+export const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image')) cb(null, true);
   else cb(new AppError('Not an image! Please upload only images', 400));
 };
@@ -56,6 +56,58 @@ export const resizeuserPhoto = catchAsync(async (req, res, next) => {
 
 export const uploadUserPhoto = upload.single('photo');
 
+export const getUsersPhoto = catchAsync(async (req, res, next) => {
+  let where = { id: +req.params.id };
+
+  if (req.params.id === 'me') where = { id: +req.user.id };
+
+  const user = await prisma.user.findUnique({
+    where: where,
+  });
+
+  if (!user) return next(new AppError('No user found with that ID', 404));
+
+  const { photo } = user;
+
+  if (photo === 'default.jpg')
+    return res.status(200).json({
+      status: 'success',
+      message: 'User does not have a profile picture',
+    });
+
+  res.status(200).json({
+    status: 'success',
+    photo: `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/public/img/users/${photo}`,
+  });
+});
+
+export const deleteUsersPhoto = catchAsync(async (req, res, next) => {
+  let where = { id: +req.user.id };
+
+  if (req.user.role === 'admin') where = { id: +req.params.id };
+
+  const user = await prisma.user.update({
+    where,
+    data: {
+      photo: 'default.jpg',
+    },
+  });
+
+  if (!user || user.length === 0)
+    return next(new AppError('No user found with that ID', 404));
+
+  sanitizeOutput(user);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user,
+    },
+  });
+});
+
 export const getMe = (req, res, next) => {
   req.params.id = req.user.id;
   next();
@@ -72,7 +124,7 @@ export const updateMe = catchAsync(async (req, res, next) => {
 
   const filteredBody = filterObj(req.body, 'first_name', 'last_name', 'email');
 
-  if (req.body.photo === 'null') filteredBody.photo = 'default.jpg';
+  // if (req.body.photo === 'null') filteredBody.photo = 'default.jpg';
 
   if (req.file) filteredBody.photo = req.file.filename;
 
