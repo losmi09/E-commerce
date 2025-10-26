@@ -20,6 +20,8 @@ router.patch('/deactivateMe', userController.deactivateMe);
 
 router.delete('/deleteMe', userController.deleteMe);
 
+router.route('/:id/photo').get(userController.getUsersPhoto);
+
 router.use(authController.restrictTo('admin'));
 
 router.get('/', userController.getAllUsers);
