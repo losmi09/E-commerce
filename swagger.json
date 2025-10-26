@@ -1,0 +1,67 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "E-Commerce",
+    "version": "1.0.0",
+    "description": "E-Commerce API documentation"
+  },
+  "servers": [{ "url": "http://localhost:3000" }],
+  "paths": {
+    "/api/v1/products": {
+      "get": {
+        "summary": "Returns an array of products",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "results": { "type": "number", "example": 3 },
+                    "products": {
+                      "type": "array",
+                      "example": [
+                        {
+                          "id": 3,
+                          "name": "R7 9800X3D",
+                          "description": "High performance AMD CPU",
+                          "price": "300.99",
+                          "createdAt": "2025-10-24T21:01:42.276Z",
+                          "categoryId": 1,
+                          "reviewsCount": 1,
+                          "reviewsAverage": "1"
+                        },
+                        {
+                          "id": 5,
+                          "name": "RTX 4060",
+                          "description": "High performance GPU",
+                          "price": "500.99",
+                          "createdAt": "2025-10-24T21:03:07.623Z",
+                          "categoryId": 4,
+                          "reviewsCount": 0,
+                          "reviewsAverage": "0"
+                        },
+                        {
+                          "id": 8,
+                          "name": "123450678",
+                          "description": "dsasda",
+                          "price": "3232",
+                          "createdAt": "2025-10-25T16:39:47.596Z",
+                          "categoryId": 1,
+                          "reviewsCount": 0,
+                          "reviewsAverage": "0"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

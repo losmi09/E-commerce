@@ -1,5 +1,7 @@
 import express from 'express';
 import morgan from 'morgan';
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './swagger.json' with {type: 'json'};
 import compression from 'compression';
 import qs from 'qs';
 import cors from 'cors';
@@ -46,6 +48,8 @@ if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 app.use(hpp());
 
 app.use(compression());
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/auth', authLimit, authRouter);
