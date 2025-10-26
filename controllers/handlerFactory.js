@@ -143,6 +143,8 @@ export const updateOne = model =>
       },
     });
 
+    console.log(updatedDoc);
+
     if (model === 'user') sanitizeOutput(updatedDoc);
 
     if (model === 'review') calcReviewStats(+req.params.productId);
@@ -156,7 +158,7 @@ export const updateOne = model =>
   });
 
 export const deleteOne = model =>
-  catchAsync(async (req, res) => {
+  catchAsync(async (req, res, next) => {
     let deleteBy = { id: +req.params.id };
 
     if (model === 'cartItem')
@@ -165,9 +167,12 @@ export const deleteOne = model =>
         cartId: await getUsersCartId(req),
       };
 
-    await prisma[model].deleteMany({
+    const deleted = await prisma[model].deleteMany({
       where: deleteBy,
     });
+
+    if (deleted.count === 0)
+      return next(new AppError(`No ${model} found with that ID`, 404));
 
     if (model === 'review') calcReviewStats(+req.params.productId);
 
