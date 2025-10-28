@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as userController from '../controllers/userController.js';
 import * as authController from '../controllers/authController.js';
+import { checkBeforeUpload } from '../utils/photo.js';
 import isIdNumber from '../utils/isIdNumber.js';
 
 export const router = Router();
@@ -20,11 +21,16 @@ router
   .get(userController.getUsersPhoto)
   .post(
     isIdNumber,
+    checkBeforeUpload('add'),
     userController.uploadUserPhoto,
     userController.resizeUserPhoto,
     userController.addUsersPhoto
   )
-  .patch(isIdNumber, userController.removeUsersPhoto);
+  .patch(
+    isIdNumber,
+    checkBeforeUpload('remove'),
+    userController.removeUsersPhoto
+  );
 
 router.use(authController.restrictTo('admin'));
 
