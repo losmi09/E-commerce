@@ -119,7 +119,7 @@ export const signin = catchAsync(async (req, res, next) => {
   if (!email || !password)
     return next(new AppError('Please enter email and password', 400));
 
-  const [user] = await prisma.user.findMany({
+  const user = await prisma.user.findUnique({
     where: {
       email,
     },
@@ -231,7 +231,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   if (!email)
     return next(new AppError('Please enter the email of your account', 400));
 
-  const [user] = await prisma.user.findMany({
+  const user = await prisma.user.findUnique({
     where: {
       email,
     },
