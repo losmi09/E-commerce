@@ -6,6 +6,8 @@ import AppError from '../utils/appError.js';
 import prisma from '../server.js';
 import { sanitizeOutput } from './authController.js';
 import { comparePasswords } from '../models/userModel.js';
+import deleteImage from '../utils/deleteImage.js';
+import photo from '../utils/photo.js';
 import * as factory from './handlerFactory.js';
 
 const filterObj = (obj, ...allowedFields) => {
@@ -38,7 +40,7 @@ const upload = multer({
   fileFilter,
 });
 
-export const resizeuserPhoto = catchAsync(async (req, res, next) => {
+export const resizeUserPhoto = catchAsync(async (req, res, next) => {
   if (!req.file) return next();
 
   const ext = extname(req.file.originalname);
@@ -72,7 +74,9 @@ export const getUsersPhoto = catchAsync(async (req, res, next) => {
   if (photo === 'default.jpg')
     return res.status(200).json({
       status: 'success',
-      message: 'User does not have a profile picture',
+      message: `${
+        req.params.id === 'me' ? 'You do' : 'User does'
+      } not have a profile picture`,
     });
 
   res.status(200).json({
@@ -83,30 +87,9 @@ export const getUsersPhoto = catchAsync(async (req, res, next) => {
   });
 });
 
-export const deleteUsersPhoto = catchAsync(async (req, res, next) => {
-  let where = { id: +req.user.id };
+export const addUsersPhoto = photo('add');
 
-  if (req.user.role === 'admin') where = { id: +req.params.id };
-
-  const user = await prisma.user.update({
-    where,
-    data: {
-      photo: 'default.jpg',
-    },
-  });
-
-  if (!user || user.length === 0)
-    return next(new AppError('No user found with that ID', 404));
-
-  sanitizeOutput(user);
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      user,
-    },
-  });
-});
+export const removeUsersPhoto = photo('remove');
 
 export const getMe = (req, res, next) => {
   req.params.id = req.user.id;
@@ -123,10 +106,6 @@ export const updateMe = catchAsync(async (req, res, next) => {
     );
 
   const filteredBody = filterObj(req.body, 'first_name', 'last_name', 'email');
-
-  // if (req.body.photo === 'null') filteredBody.photo = 'default.jpg';
-
-  if (req.file) filteredBody.photo = req.file.filename;
 
   const updatedUser = await prisma.user.update({
     where: {
@@ -183,6 +162,8 @@ export const deleteMe = catchAsync(async (req, res, next) => {
   await prisma.user.delete({
     where: { id: +req.user.id },
   });
+
+  deleteImage('users', user.photo);
 
   res.status(204).end();
 });
