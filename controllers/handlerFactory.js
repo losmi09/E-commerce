@@ -7,6 +7,7 @@ import { sanitizeOutput } from './authController.js';
 import getUsersCartId from '../utils/getUsersCardId.js';
 import calcReviewStats from '../utils/calculateReviews.js';
 import validateBody from '../utils/validateBody.js';
+import deleteImage from '../utils/deleteImage.js';
 import prisma from '../server.js';
 
 export const getAll = (model, defaultSort) =>
@@ -165,12 +166,18 @@ export const deleteOne = model =>
         cartId: await getUsersCartId(req),
       };
 
-    const deleted = await prisma[model].deleteMany({
+    const doc = await prisma[model].findUnique({
       where: deleteBy,
     });
 
-    if (deleted.count === 0)
-      return next(new AppError(`No ${model} found with that ID`, 404));
+    if (!doc) return next(new AppError(`No ${model} found with that ID`, 404));
+
+    await prisma[model].delete({
+      where: { id: doc.id },
+    });
+
+    if (model === 'product' || model === 'user')
+      deleteImage(model + 's', doc.image || doc.photo);
 
     if (model === 'review') calcReviewStats(+req.params.productId);
 
