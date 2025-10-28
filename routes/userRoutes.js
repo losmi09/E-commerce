@@ -9,12 +9,7 @@ router.use(authController.protect);
 
 router.get('/me', userController.getMe, userController.getUser);
 
-router.patch(
-  '/updateMe',
-  userController.uploadUserPhoto,
-  userController.resizeuserPhoto,
-  userController.updateMe
-);
+router.patch('/updateMe', userController.updateMe);
 
 router.patch('/deactivateMe', userController.deactivateMe);
 
@@ -23,7 +18,13 @@ router.delete('/deleteMe', userController.deleteMe);
 router
   .route('/:id/photo')
   .get(userController.getUsersPhoto)
-  .delete(userController.deleteUsersPhoto);
+  .post(
+    isIdNumber,
+    userController.uploadUserPhoto,
+    userController.resizeUserPhoto,
+    userController.addUsersPhoto
+  )
+  .patch(isIdNumber, userController.removeUsersPhoto);
 
 router.use(authController.restrictTo('admin'));
 
