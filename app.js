@@ -51,6 +51,11 @@ app.use(compression());
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
+app.use((req, res, next) => {
+  if(req.method !== 'GET' && !req.body) req.body = {};
+  next()
+})
+
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/auth', authLimit, authRouter);
 app.use('/api/v1/users', userRouter);
