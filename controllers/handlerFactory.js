@@ -66,14 +66,16 @@ export const getOne = model =>
 
     if (model === 'cartItem') {
       findBy = {
-        productId: +req.params.productId,
-        cartId: await getUsersCartId(req),
+        cartId_productId: {
+          productId: +req.params.productId,
+          cartId: await getUsersCartId(req),
+        },
       };
 
       include = { product: true };
     }
 
-    let [doc] = await prisma[model].findMany({
+    const doc = await prisma[model].findUnique({
       where: findBy,
       include,
     });
@@ -160,11 +162,14 @@ export const deleteOne = model =>
   catchAsync(async (req, res, next) => {
     let deleteBy = { id: +req.params.id };
 
-    if (model === 'cartItem')
+    if (model === 'cartItem') {
       deleteBy = {
-        productId: +req.params.productId,
-        cartId: await getUsersCartId(req),
+        cartId_productId: {
+          cartId: await getUsersCartId(req),
+          productId: +req.params.productId,
+        },
       };
+    }
 
     const doc = await prisma[model].findUnique({
       where: deleteBy,
@@ -173,7 +178,7 @@ export const deleteOne = model =>
     if (!doc) return next(new AppError(`No ${model} found with that ID`, 404));
 
     await prisma[model].delete({
-      where: { id: doc.id },
+      where: deleteBy,
     });
 
     if (model === 'product' || model === 'user')
