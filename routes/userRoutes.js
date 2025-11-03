@@ -18,7 +18,7 @@ router.delete('/deleteMe', userController.deleteMe);
 
 router
   .route('/:id/photo')
-  .get(userController.getUsersPhoto)
+  .get(isIdNumber, userController.getUsersPhoto)
   .post(
     isIdNumber,
     checkBeforeUpload('add'),
