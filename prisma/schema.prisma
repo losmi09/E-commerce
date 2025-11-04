@@ -14,25 +14,27 @@ model Product {
   name           String   @unique @db.VarChar(255)
   description    String?
   price          Decimal  @db.Decimal
-  image          String? @default("default.jpg")
+  image          String?  @default("default.jpg")
   createdAt      DateTime @default(now()) @map("created_at")
   categoryId     Int?     @map("category_id")
   reviewsCount   Int      @default(0) @map("reviews_count")
   reviewsAverage Decimal  @default(0) @map("reviews_average") @db.Decimal
 
   // Relations
-  category  Category?  @relation(fields: [categoryId], references: [id])
-  cartItems CartItem[]
-  reviews   Review[]
+  category     Category?      @relation(fields: [categoryId], references: [id])
+  cartItems    CartItem[]
+  reviews      Review[]
+  ProductImage ProductImage[]
 
   @@map("products")
 }
 
 model Category {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique @db.VarChar(255)
-  description String?
-  image       String? @db.VarChar(255)
+  id            Int     @id @default(autoincrement())
+  name          String  @unique @db.VarChar(255)
+  description   String?
+  image         String? @db.VarChar(255)
+  productsCount Int     @default(0) @map("products_count")
 
   // Relations
   products Product[]
@@ -92,4 +94,13 @@ model Review {
 
   @@unique([productId, userId])
   @@map("reviews")
+}
+
+model ProductImage {
+  id        Int     @id @default(autoincrement())
+  fileName  String  @unique @db.Text
+  productId Int     @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
 }
