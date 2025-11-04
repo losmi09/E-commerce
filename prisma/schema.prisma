@@ -14,7 +14,7 @@ model Product {
   name           String   @unique @db.VarChar(255)
   description    String?
   price          Decimal  @db.Decimal
-  image          String?  @default("default.jpg")
+  coverImage     String?  @default("default.jpg")
   createdAt      DateTime @default(now()) @map("created_at")
   categoryId     Int?     @map("category_id")
   reviewsCount   Int      @default(0) @map("reviews_count")
