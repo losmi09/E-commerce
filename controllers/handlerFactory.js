@@ -8,6 +8,7 @@ import getUsersCartId from '../utils/getUsersCardId.js';
 import calcReviewStats from '../utils/calculateReviews.js';
 import validateBody from '../utils/validateBody.js';
 import deleteImage from '../utils/deleteImage.js';
+import calcProdsOnCategory from '../utils/calcProdsOnCategory.js';
 import prisma from '../server.js';
 
 export const getAll = (model, defaultSort) =>
@@ -115,6 +116,8 @@ export const createOne = model =>
 
     if (model === 'review') calcReviewStats(+req.params.productId);
 
+    if (model === 'product') calcProdsOnCategory(value.categoryId);
+
     res.status(201).json({
       status: 'success',
       data: {
@@ -185,6 +188,8 @@ export const deleteOne = model =>
       deleteImage(model + 's', doc.image || doc.photo);
 
     if (model === 'review') calcReviewStats(+req.params.productId);
+
+    if (model === 'product') calcProdsOnCategory(doc.categoryId);
 
     res.status(204).end();
   });
