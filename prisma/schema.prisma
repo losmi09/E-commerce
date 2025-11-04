@@ -14,7 +14,7 @@ model Product {
   name           String   @unique @db.VarChar(255)
   description    String?
   price          Decimal  @db.Decimal
-  image          String?
+  image          String? @default("default.jpg")
   createdAt      DateTime @default(now()) @map("created_at")
   categoryId     Int?     @map("category_id")
   reviewsCount   Int      @default(0) @map("reviews_count")
@@ -86,7 +86,7 @@ model Review {
   text      String  @db.VarChar(255)
   rating    Int
   productId Int     @map("product_id")
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   userId    Int     @map("user_id")
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
