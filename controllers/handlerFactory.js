@@ -23,12 +23,16 @@ export const getAll = (model, defaultSort) =>
 
       let include;
 
+      let omit = {};
+
       if (model === 'cartItem') {
         query.cartId = await getUsersCartId(req);
         include = { product: true };
       }
 
       if (model === 'review') query.productId = +req.params.productId;
+
+      if (model === 'cartItem') omit = { cartId: true, productId: true };
 
       const doc = await prisma[model].findMany({
         skip,
@@ -38,6 +42,7 @@ export const getAll = (model, defaultSort) =>
         },
         include,
         orderBy: sorting,
+        omit,
       });
 
       if (model === 'user') doc.forEach(user => sanitizeOutput(user));
@@ -65,6 +70,8 @@ export const getOne = model =>
 
     let findBy = { id: +req.params.id };
 
+    let omit = {};
+
     if (model === 'cartItem') {
       findBy = {
         cartId_productId: {
@@ -74,11 +81,14 @@ export const getOne = model =>
       };
 
       include = { product: true };
+
+      omit = { cartId: true, productId: true };
     }
 
     const doc = await prisma[model].findUnique({
       where: findBy,
       include,
+      omit,
     });
 
     if (!doc || doc.length === 0)
