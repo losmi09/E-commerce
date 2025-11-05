@@ -21,10 +21,10 @@ model Product {
   reviewsAverage Decimal  @default(0) @map("reviews_average") @db.Decimal
 
   // Relations
-  category     Category?      @relation(fields: [categoryId], references: [id])
-  cartItems    CartItem[]
-  reviews      Review[]
-  ProductImage ProductImage[]
+  category  Category?      @relation(fields: [categoryId], references: [id])
+  cartItems CartItem[]
+  reviews   Review[]
+  images    ProductImage[]
 
   @@map("products")
 }
