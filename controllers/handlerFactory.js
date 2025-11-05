@@ -59,7 +59,7 @@ export const getOne = model =>
   catchAsync(async (req, res, next) => {
     let include = {};
 
-    if (model === 'product') include = { reviews: true };
+    if (model === 'product') include = { reviews: true, images: true };
 
     if (model === 'category') include = { products: true };
 
@@ -185,7 +185,7 @@ export const deleteOne = model =>
     });
 
     if (model === 'product' || model === 'user')
-      deleteImage(model + 's', doc.image || doc.photo);
+      deleteImage(model + 's', doc.coverImage || doc.photo);
 
     if (model === 'review') calcReviewStats(+req.params.productId);
 
