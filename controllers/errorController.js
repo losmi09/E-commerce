@@ -24,6 +24,9 @@ const handleNotFoundRecord = err => {
   return new AppError(message, 404);
 };
 
+const handleFileLimit = err =>
+  new AppError(`You can upload up to 3 ${err.field}`, 400);
+
 const sendErrorDev = (err, res) => {
   const { statusCode, status, message, stack } = err;
 
@@ -61,6 +64,7 @@ const globalErrorHandler = (err, req, res, next) => {
       error = handleUniqueConstraint(err);
     if (err.code === 'P2025') error = handleNotFoundRecord(err);
     if (err.code === 'P2003') error = handleViolatedFkey(err);
+    if (err.code === 'LIMIT_UNEXPECTED_FILE') error = handleFileLimit(err);
     if (err.name === 'TokenExpiredError') error = handleExpiredToken();
     if (
       err.name === 'JsonWebTokenError' || // err instanceof SyntaxError
