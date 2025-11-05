@@ -1,6 +1,5 @@
 import { extname } from 'path';
 import multer from 'multer';
-import sharp from 'sharp';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import prisma from '../server.js';
@@ -8,6 +7,7 @@ import { sanitizeOutput } from './authController.js';
 import { comparePasswords } from '../models/userModel.js';
 import deleteImage from '../utils/deleteImage.js';
 import photo from '../utils/photo.js';
+import { resizeTheImage } from './productController.js';
 import * as factory from './handlerFactory.js';
 
 const filterObj = (obj, ...allowedFields) => {
@@ -47,11 +47,7 @@ export const resizeUserPhoto = catchAsync(async (req, res, next) => {
 
   req.file.filename = `user-${req.user.id}-${Date.now()}${ext}`;
 
-  await sharp(req.file.buffer)
-    .resize(500, 500)
-    .toFormat('jpg')
-    .jpeg({ quality: 90 })
-    .toFile(`public/img/users/${req.file.filename}`);
+  await resizeTheImage(req.file.buffer, 'users', req.file.filename);
 
   next();
 });
