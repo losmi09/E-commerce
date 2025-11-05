@@ -1,9 +1,9 @@
-import { extname } from 'path';
 import multer from 'multer';
 import sharp from 'sharp';
 import * as factory from './handlerFactory.js';
 import { fileFilter } from './userController.js';
 import catchAsync from '../utils/catchAsync.js';
+import prisma from '../server.js';
 
 const storage = multer.memoryStorage();
 
@@ -12,22 +12,38 @@ const upload = multer({
   fileFilter,
 });
 
-export const uploadProductImage = upload.single('image');
+export const uploadProductImages = upload.fields([
+  { name: 'coverImage', maxCount: 1 },
+  { name: 'images', maxCount: 3 },
+]);
 
-export const resizeProductImage = catchAsync(async (req, res, next) => {
-  if (!req.file) return next();
-
-  const ext = extname(req.file.originalname);
-
-  req.fileName = `product-${req.body.name}-${Date.now()}${ext}`;
-
-  await sharp(req.file.buffer)
-    .resize(1000, 1000)
+export const resizeTheImage = async (buffer, path, fileName) =>
+  await sharp(buffer)
+    .resize(2000, 1333)
     .toFormat('jpg')
     .jpeg({ quality: 90 })
-    .toFile(`public/img/products/${req.fileName}`);
+    .toFile(`public/img/${path}/${fileName}`);
 
-  req.body.image = req.fileName;
+export const resizeProductImage = catchAsync(async (req, res, next) => {
+  if (!req.files?.coverImage?.[0] || !req.files.images?.[0]) return next();
+
+  const coverImage = `product-${req.params.id}-${Date.now()}-cover.jpg`;
+
+  req.body.coverImage = coverImage;
+
+  await resizeTheImage(req.files.coverImage[0].buffer, 'products', coverImage);
+
+  await Promise.all(
+    req.files.images.map(async (file, i) => {
+      const fileName = `product-${req.params.id}-${Date.now()}-${i + 1}.jpg`;
+
+      await prisma.productImage.create({
+        data: { productId: +req.params.id, fileName },
+      });
+
+      await resizeTheImage(file.buffer, 'products', fileName);
+    })
+  );
 
   next();
 });
