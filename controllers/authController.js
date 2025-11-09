@@ -82,33 +82,33 @@ export const signup = catchAsync(async (req, res, next) => {
     },
   });
 
-  // const verificationToken = await userModel.createToken(newUser, 'email');
+  const verificationToken = await userModel.createToken(newUser, 'email');
 
-  // const verificationUrl = getEmailUrl(req, 'verifyEmail', verificationToken);
+  const verificationUrl = getEmailUrl(req, 'verifyEmail', verificationToken);
 
-  // const subject = 'Verify your email';
+  const subject = 'Verify your email';
 
-  // const text = `Verify your email by opening this link: ${verificationUrl}.`;
+  const text = `Verify your email by opening this link: ${verificationUrl}.`;
 
-  // try {
-  //   await sendEmail({
-  //     to: email,
-  //     subject,
-  //     text,
-  //   });
-  // } catch (err) {
-  //   await prisma.user.update({
-  //     where: {
-  //       id: newUser.id,
-  //     },
-  //     data: {
-  //       emailVerificationToken: null,
-  //       emailVerificationTokenExpiry: null,
-  //     },
-  //   });
+  try {
+    await sendEmail({
+      to: email,
+      subject,
+      text,
+    });
+  } catch (err) {
+    await prisma.user.update({
+      where: {
+        id: newUser.id,
+      },
+      data: {
+        emailVerificationToken: null,
+        emailVerificationTokenExpiry: null,
+      },
+    });
 
-  //   return next(new AppError(err.message, 500));
-  // }
+    return next(new AppError(err.message, 500));
+  }
 
   createSendToken(newUser, 201, res);
 });
@@ -175,10 +175,7 @@ export const logout = catchAsync(async (req, res) => {
 export const protect = catchAsync(async (req, res, next) => {
   let token;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  )
+  if (req.headers?.authorization?.startsWith('Bearer'))
     token = req.headers.authorization.split(' ')[1];
 
   if (!token)
