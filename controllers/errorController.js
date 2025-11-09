@@ -66,14 +66,7 @@ const globalErrorHandler = (err, req, res, next) => {
     if (err.code === 'P2003') error = handleViolatedFkey(err);
     if (err.code === 'LIMIT_UNEXPECTED_FILE') error = handleFileCountLimit(err);
     if (err.name === 'TokenExpiredError') error = handleExpiredToken();
-    if (
-      err.name === 'JsonWebTokenError' || // err instanceof SyntaxError
-      err.message.startsWith(
-        'Bad control character in string literal in JSON at position'
-      ) ||
-      err.message.startsWith('Unterminated string in JSON at position') ||
-      err.message.startsWith('Unexpected token')
-    )
+    if (err.name === 'JsonWebTokenError' || err instanceof SyntaxError)
       error = handleInvalidToken();
 
     sendErrorProd(error, res);
