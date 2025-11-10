@@ -30,7 +30,10 @@ export const getAll = (model, defaultSort) =>
         include = { product: true };
       }
 
-      if (model === 'review') query.productId = +req.params.productId;
+      if (model === 'review') {
+        query.productId = +req.params.productId;
+        omit = { productId: true };
+      }
 
       if (model === 'cartItem') omit = { cartId: true, productId: true };
 
@@ -64,7 +67,11 @@ export const getOne = model =>
   catchAsync(async (req, res, next) => {
     let include = {};
 
-    if (model === 'product') include = { reviews: true, images: true };
+    if (model === 'product')
+      include = {
+        reviews: { omit: { productId: true } },
+        images: { omit: { productId: true } },
+      };
 
     if (model === 'category') include = { products: true };
 
@@ -194,12 +201,21 @@ export const deleteOne = model =>
       where: deleteBy,
     });
 
-    if (model === 'product' || model === 'user')
-      deleteImage(model + 's', doc.coverImage || doc.photo);
-
     if (model === 'review') calcReviewStats(+req.params.productId);
 
-    if (model === 'product') calcProdsOnCategory(doc.categoryId);
+    if (model === 'user') deleteImage('users', doc.photo);
+
+    if (model === 'product') {
+      const productImages = await prisma.productImage.findMany({
+        where: { productId: doc.id },
+      });
+
+      deleteImage('products', doc.coverImage);
+
+      productImages.forEach(img => deleteImage('products', img.fileName));
+
+      calcProdsOnCategory(doc.categoryId);
+    }
 
     res.status(204).end();
   });
