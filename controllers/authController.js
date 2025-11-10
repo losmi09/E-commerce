@@ -147,7 +147,7 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
       id: user.id,
     },
     data: {
-      isActive: true,
+      isVerified: true,
       emailVerificationToken: null,
       emailVerificationTokenExpiry: null,
     },
