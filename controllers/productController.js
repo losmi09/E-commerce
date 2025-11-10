@@ -1,5 +1,6 @@
 import multer from 'multer';
 import sharp from 'sharp';
+import prettyBytes from 'pretty-bytes';
 import * as factory from './handlerFactory.js';
 import { fileFilter } from './userController.js';
 import catchAsync from '../utils/catchAsync.js';
@@ -38,7 +39,13 @@ export const resizeProductImage = catchAsync(async (req, res, next) => {
       const fileName = `product-${req.params.id}-${Date.now()}-${i + 1}.jpg`;
 
       await prisma.productImage.create({
-        data: { productId: +req.params.id, fileName },
+        data: {
+          productId: +req.params.id,
+          fileName,
+          extension: 'jpg',
+          size: file.size,
+          humanReadableSize: prettyBytes(file.size),
+        },
       });
 
       await resizeTheImage(file.buffer, 'products', fileName);
