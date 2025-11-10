@@ -76,7 +76,7 @@ model CartItem {
   cartId    Int     @map("cart_id")
   cart      Cart    @relation(fields: [cartId], references: [id])
   productId Int     @map("product_id")
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   quantity  Int     @default(1)
 
   @@id([cartId, productId])
@@ -97,10 +97,13 @@ model Review {
 }
 
 model ProductImage {
-  id        Int     @id @default(autoincrement())
-  fileName  String  @unique @db.Text
-  productId Int     @map("product_id")
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id                Int     @id @default(autoincrement())
+  fileName          String  @unique @db.Text
+  extension         String  @db.VarChar(20)
+  size              Int
+  humanReadableSize String  @map("human_readable_size") @db.VarChar(255)
+  productId         Int     @map("product_id")
+  product           Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("product_images")
 }
