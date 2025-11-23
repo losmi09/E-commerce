@@ -1,8 +1,7 @@
 import { Router } from 'express';
 import * as userController from '../controllers/userController.js';
 import * as authController from '../controllers/authController.js';
-import { checkBeforeUpload } from '../utils/photo.js';
-import isIdNumber from '../utils/isIdNumber.js';
+import isIdNumber from '../middlewares/isIdNumber.js';
 
 export const router = Router();
 
@@ -10,27 +9,16 @@ router.use(authController.protect);
 
 router.get('/me', userController.getMe, userController.getUser);
 
-router.patch('/updateMe', userController.updateMe);
+router.patch(
+  '/updateMe',
+  userController.uploadUserPhoto,
+  userController.resizeUserPhoto,
+  userController.updateMe
+);
 
 router.patch('/deactivateMe', userController.deactivateMe);
 
 router.delete('/deleteMe', userController.deleteMe);
-
-router
-  .route('/:id/photo')
-  .get(isIdNumber, userController.getUsersPhoto)
-  .post(
-    isIdNumber,
-    checkBeforeUpload('add'),
-    userController.uploadUserPhoto,
-    userController.resizeUserPhoto,
-    userController.addUsersPhoto
-  )
-  .patch(
-    isIdNumber,
-    checkBeforeUpload('remove'),
-    userController.removeUsersPhoto
-  );
 
 router.use(authController.restrictTo('admin'));
 
