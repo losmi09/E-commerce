@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import * as reviewController from '../controllers/reviewController.js';
 import * as authController from '../controllers/authController.js';
-import checkIfReviewBelongsToUser from '../utils/reviewBelonging.js';
-import isIdNumber from '../utils/isIdNumber.js';
+import checkIfReviewBelongsToUser from '../middlewares/reviewBelonging.js';
+import isIdNumber from '../middlewares/isIdNumber.js';
 
 export const router = Router({ mergeParams: true });
 

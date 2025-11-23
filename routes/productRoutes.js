@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { router as reviewRouter } from './reviewRoutes.js';
 import * as productController from '../controllers/productController.js';
 import * as authController from '../controllers/authController.js';
-import isIdNumber from '../utils/isIdNumber.js';
+import isIdNumber from '../middlewares/isIdNumber.js';
 
 export const router = Router();
 
