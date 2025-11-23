@@ -1,221 +1,115 @@
-import pluralize from 'pluralize';
-import camelcaseKeys from 'camelcase-keys';
 import catchAsync from '../utils/catchAsync.js';
-import AppError from '../utils/appError.js';
-import filterAndSort from '../utils/filtering-sorting.js';
-import { sanitizeOutput } from './authController.js';
-import getUsersCartId from '../utils/getUsersCardId.js';
-import calcReviewStats from '../utils/calculateReviews.js';
-import validateBody from '../utils/validateBody.js';
-import deleteImage from '../utils/deleteImage.js';
-import calcProdsOnCategory from '../utils/calcProdsOnCategory.js';
-import prisma from '../server.js';
+import AppError from '../utils/error/appError.js';
+import validateBody from '../utils/validation/validateBody.js';
+import prepareQueryForUser from '../utils/query/prepareQueryForUser.js';
+import sendData from '../utils/response/sendData.js';
+import throwErrorMessage from '../utils/error/throwErrorMessage.js';
+import * as crudRepository from '../repositories/crudRepository.js';
+import * as crudService from '../services/crudService.js';
+import * as reviewService from '../services/reviewService.js';
 
-export const getAll = (model, defaultSort) =>
-  catchAsync(async (req, res, next) => {
-    try {
-      const modelNamePlural = pluralize(model);
+export const getAll = model =>
+  catchAsync(async (req, res) => {
+    const cartId = req.user ? req.user.cartId : undefined;
 
-      const { skip, limit, query, sorting } = filterAndSort(
-        req.query,
-        defaultSort
-      );
+    // Add params to req.query so user can get only items in HIS cart or only reviews that BELONG to the product
+    const query = await prepareQueryForUser({
+      model,
+      query: req.query,
+      productId: req.params.productId,
+      cartId,
+    });
 
-      let include;
+    const doc = await crudRepository.findManyDocuments(model, query);
 
-      let omit = {};
-
-      if (model === 'cartItem') {
-        query.cartId = await getUsersCartId(req);
-        include = { product: true };
-      }
-
-      if (model === 'review') {
-        query.productId = +req.params.productId;
-        omit = { productId: true };
-      }
-
-      if (model === 'cartItem') omit = { cartId: true, productId: true };
-
-      const doc = await prisma[model].findMany({
-        skip,
-        take: +limit,
-        where: {
-          ...query,
-        },
-        include,
-        orderBy: sorting,
-        omit,
-      });
-
-      if (model === 'user') doc.forEach(user => sanitizeOutput(user));
-
-      res.status(200).json({
-        status: 'success',
-        results: doc.length,
-        data: {
-          [modelNamePlural]: doc,
-        },
-      });
-    } catch (err) {
-      if (err.message.includes('Unknown argument'))
-        return next(new AppError('Bad filter', 400));
-    }
+    sendData(res, doc, model);
   });
 
 export const getOne = model =>
   catchAsync(async (req, res, next) => {
-    let include = {};
+    const { id, productId } = req.params;
 
-    if (model === 'product')
-      include = {
-        reviews: { omit: { productId: true } },
-        images: { omit: { productId: true } },
-      };
+    const cartId = req.user ? req.user.cartId : undefined;
 
-    if (model === 'category') include = { products: true };
-
-    let findBy = { id: +req.params.id };
-
-    let omit = {};
-
-    if (model === 'cartItem') {
-      findBy = {
-        cartId_productId: {
-          productId: +req.params.productId,
-          cartId: await getUsersCartId(req),
-        },
-      };
-
-      include = { product: true };
-
-      omit = { cartId: true, productId: true };
-    }
-
-    const doc = await prisma[model].findUnique({
-      where: findBy,
-      include,
-      omit,
-    });
-
-    if (!doc || doc.length === 0)
-      return next(new AppError(`No ${model} found with that ID`, 404));
-
-    if (model === 'user') sanitizeOutput(doc);
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        [model]: camelcaseKeys(doc),
-      },
-    });
-  });
-
-export const createOne = model =>
-  catchAsync(async (req, res, next) => {
-    const { error, value } = validateBody(model, req.body);
-
-    if (error) {
-      const errorMessage = error.details[0].message.replaceAll('"', '');
-      return next(new AppError(errorMessage, 400));
-    }
-
-    if (model === 'cartItem') value.cartId = await getUsersCartId(req);
-
-    if (model === 'review') {
-      value.productId = +req.params.productId;
-      value.userId = req.user.id;
-    }
-
-    const newDoc = await prisma[model].create({
-      data: value,
-    });
-
-    if (model === 'review') calcReviewStats(+req.params.productId);
-
-    if (model === 'product') calcProdsOnCategory(value.categoryId);
-
-    res.status(201).json({
-      status: 'success',
-      data: {
-        [model]: newDoc,
-      },
-    });
-  });
-
-export const updateOne = model =>
-  catchAsync(async (req, res, next) => {
-    const { error, value } = validateBody(model, req.body);
-
-    let errorMessage;
-
-    if (error)
-      error.details.forEach(err => {
-        if (!err.message.endsWith('required'))
-          errorMessage = err.message.replaceAll('"', '');
-      });
-
-    if (errorMessage) return next(new AppError(errorMessage, 400));
-
-    const updatedDoc = await prisma[model].update({
-      where: {
-        id: +req.params.id,
-      },
-      data: {
-        ...value,
-      },
-    });
-
-    if (model === 'user') sanitizeOutput(updatedDoc);
-
-    if (model === 'review') calcReviewStats(+req.params.productId);
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        [model]: updatedDoc,
-      },
-    });
-  });
-
-export const deleteOne = model =>
-  catchAsync(async (req, res, next) => {
-    let deleteBy = { id: +req.params.id };
-
-    if (model === 'cartItem') {
-      deleteBy = {
-        cartId_productId: {
-          cartId: await getUsersCartId(req),
-          productId: +req.params.productId,
-        },
-      };
-    }
-
-    const doc = await prisma[model].findUnique({
-      where: deleteBy,
+    const doc = await crudRepository.findUniqueDocument({
+      model,
+      id: +id,
+      productId: +productId,
+      cartId,
     });
 
     if (!doc) return next(new AppError(`No ${model} found with that ID`, 404));
 
-    await prisma[model].delete({
-      where: deleteBy,
+    sendData(res, doc, model);
+  });
+
+export const createOne = model =>
+  catchAsync(async (req, res) => {
+    const { error, value } = validateBody(model, req.body);
+
+    if (error) throwErrorMessage(error);
+
+    const newDoc = await crudService.createOne({
+      model,
+      data: value,
+      productId: req.params.productId,
+      userId: req.user.id,
+      cartId: req.user.cartId,
     });
 
-    if (model === 'review') calcReviewStats(+req.params.productId);
+    sendData(res, newDoc, model, 201);
+  });
 
-    if (model === 'user') deleteImage('users', doc.photo);
+export const updateOne = model =>
+  catchAsync(async (req, res) => {
+    const { error, value } = validateBody(model, req.body);
 
-    if (model === 'product') {
-      const productImages = await prisma.productImage.findMany({
-        where: { productId: doc.id },
-      });
+    if (error) throwErrorMessage(error, 'updating');
 
-      deleteImage('products', doc.coverImage);
+    const updatedDoc = await crudService.updateOne(model, req.params, value);
 
-      productImages.forEach(img => deleteImage('products', img.fileName));
+    sendData(res, updatedDoc, model);
+  });
 
-      calcProdsOnCategory(doc.categoryId);
-    }
+export const deleteOne = model =>
+  catchAsync(async (req, res, next) => {
+    const { id, productId } = req.params;
+
+    const { cartId } = req.user;
+
+    const doc = await crudRepository.findUniqueDocument({
+      model,
+      id: +id,
+      productId: +productId,
+      cartId,
+    });
+
+    if (!doc) return next(new AppError(`No ${model} found with that ID`, 404));
+
+    await crudRepository.deleteDocument({
+      model,
+      id: +id,
+      productId: +productId,
+      cartId,
+    });
+
+    if (model === 'review')
+      reviewService.calcReviewStats(+req.params.productId);
+
+    // if (model === 'user' || model === 'category')
+    //   deleteImage(pluralize(model), doc.image);
+
+    // if (model === 'product') {
+    //   const productImages = await prisma.productImage.findMany({
+    //     where: { productId: doc.id },
+    //   });
+
+    //   deleteImage('products', doc.coverImage);
+
+    //   productImages.forEach(img => deleteImage('products', img.fileName));
+
+    //   calcProdsOnCategory(doc.categoryId);
+    // }
 
     res.status(204).end();
   });
