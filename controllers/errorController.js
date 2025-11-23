@@ -1,10 +1,16 @@
-import AppError from '../utils/appError.js';
+import AppError from '../utils/error/appError.js';
+
+const handleTooLargePayload = () =>
+  new AppError('Request entity too large', 413);
 
 const handleExpiredToken = () =>
   new AppError('Your token has expired. Please log in again', 401);
 
 const handleInvalidToken = () =>
   new AppError('Invalid token. Please log in again', 401);
+
+// In req.query
+const handleBadFilter = () => new AppError('Bad filter', 400);
 
 const handleUniqueConstraint = err => {
   const { modelName, target } = err.meta;
@@ -15,13 +21,12 @@ const handleUniqueConstraint = err => {
 
 const handleNotFoundRecord = err => {
   const { modelName, constraint } = err.meta;
-  let fieldName = constraint.split('_')[1];
+  let fieldName = constraint?.split('_')[1];
   if (modelName === 'ProductImage') fieldName = 'product';
   return new AppError(`No ${fieldName} found with that ID`, 404);
 };
 
-const handleFileCountLimit = err =>
-  new AppError(`You can upload up to 3 ${err.field}`, 422);
+const handleUnexpectedFile = () => new AppError('Unexpected file', 400);
 
 const sendErrorDev = (err, res) => {
   const { statusCode, status, message, stack } = err;
@@ -56,11 +61,14 @@ const globalErrorHandler = (err, req, res, next) => {
   if (process.env.NODE_ENV === 'development') sendErrorDev(err, res);
   if (process.env.NODE_ENV === 'production') {
     let error = Object.create(err);
+
+    if (err.name === 'PayloadTooLargeError') error = handleTooLargePayload();
+    if (err.message.includes('Unknown argument')) error = handleBadFilter();
     if (err.message.includes('Unique constraint'))
       error = handleUniqueConstraint(err);
     if (err.code === 'P2025' || err.code === 'P2003')
       error = handleNotFoundRecord(err);
-    if (err.code === 'LIMIT_UNEXPECTED_FILE') error = handleFileCountLimit(err);
+    if (err.code === 'LIMIT_UNEXPECTED_FILE') error = handleUnexpectedFile();
     if (err.name === 'TokenExpiredError') error = handleExpiredToken();
     if (err.name === 'JsonWebTokenError' || err instanceof SyntaxError)
       error = handleInvalidToken();
