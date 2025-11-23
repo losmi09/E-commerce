@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import validatePassword from '../utils/validation/validatePassword.js';
@@ -5,6 +6,11 @@ import AppError from '../utils/error/appError.js';
 import * as emailService from './emailService.js';
 import * as userRepository from '../repositories/userRepository.js';
 import * as cartRepository from '../repositories/cartRepository.js';
+
+const verifyToken = async token =>
+  await jwt.verify(token, process.env.JWT_SECRET, {
+    algorithms: ['HS256'],
+  });
 
 export const hashPassword = async password => await bcrypt.hash(password, 12);
 
@@ -58,6 +64,29 @@ export const verifyEmail = async token => {
   if (!user) throw new AppError('Token is invalid or has expired', 400);
 
   await userRepository.setUserVerified(user.id);
+};
+
+export const protect = async token => {
+  // Verify token
+  const decoded = await verifyToken(token);
+
+  // Find user by id that is in token payload
+  const user = await userRepository.findUserById(decoded.id);
+
+  if (!user)
+    throw new AppError('The user belonging to token does no longer exist', 401);
+
+  // Check if password was changed after the token was issued
+  if (
+    user.passwordChangedAt &&
+    checkForPasswordChange(decoded.iat, user.passwordChangedAt)
+  )
+    throw new AppError(
+      "You've changed your password. Please sign in again",
+      401
+    );
+
+  return user;
 };
 
 export const forgotPassword = async email => {
