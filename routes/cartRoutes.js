@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as cartController from '../controllers/cartController.js';
 import * as authController from '../controllers/authController.js';
-import isIdNumber from '../utils/isIdNumber.js';
+import isIdNumber from '../middlewares/isIdNumber.js';
 
 export const router = Router();
 
