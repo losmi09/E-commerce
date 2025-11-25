@@ -15,7 +15,7 @@ const prepareQuery = (query, model) => {
 
   const { orderBy } = sort(query, defaultSort);
 
-  // By default every value in req.query is string, so convert "100" to 100 as an example
+  // Convert numeric strings to numbers in req.query
   convertQueryValuesToNumbers(query);
 
   return { skip, limit, orderBy };
