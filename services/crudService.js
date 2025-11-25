@@ -5,14 +5,18 @@ import * as categoryService from './categoryService.js';
 import AppError from '../utils/error/appError.js';
 import sanitizeOutput from '../utils/sanitizeOutput.js';
 
+const calcStatsOnRelatedDocs = async (model, productId, categoryId) => {
+  if (model === 'review') await reviewService.calcReviewStats(productId);
+  if (model === 'product')
+    await categoryService.calcProdsOnCategory(categoryId);
+};
+
 export const createOne = async ({ model, data, productId, userId, cartId }) => {
   await addFieldsToReqBody({ model, data, cartId, productId, userId });
 
   const newDoc = await crudRepository.createDocument(model, data);
 
-  if (model === 'review') reviewService.calcReviewStats(+productId);
-
-  if (model === 'product') categoryService.calcProdsOnCategory(data.categoryId);
+  await calcStatsOnRelatedDocs(model, +productId, data.categoryId);
 
   return newDoc;
 };
@@ -24,7 +28,7 @@ export const updateOne = async (model, params, data) => {
     data
   );
 
-  if (model === 'review') reviewService.calcReviewStats(+params.productId);
+  await calcStatsOnRelatedDocs(model, +params.productId);
 
   if (model === 'user') sanitizeOutput(updatedDoc);
 
@@ -32,30 +36,21 @@ export const updateOne = async (model, params, data) => {
 };
 
 export const deleteOne = async ({ model, id, productId, cartId }) => {
-  const doc = await crudRepository.findUniqueDocument(
+  const doc = await crudRepository.findUniqueDocument({
     model,
-    id,
-    productId,
-    cartId
-  );
+    id: +id,
+    productId: +productId,
+    cartId,
+  });
 
   if (!doc) throw new AppError(`No ${model} found with that ID`, 404);
 
-  await crudRepository.deleteDocument({ model, id, productId, cartId });
+  await crudRepository.deleteDocument({
+    model,
+    id: +id,
+    productId: +productId,
+    cartId,
+  });
 
-  if (model === 'review') reviewService.calcReviewStats(+productId);
-
-  if (model === 'product') categoryService.calcProdsOnCategory(doc.categoryId);
-
-  // if (model === 'user' || model === 'category')
-  //   deleteImage(pluralize(model), doc.image);
-
-  // if (model === 'product') {
-  //   const productImages = await prisma.productImage.findMany({
-  //     where: { productId: doc.id },
-  //   });
-  //   deleteImage('products', doc.coverImage);
-  //   productImages.forEach(img => deleteImage('products', img.fileName));
-  //   calcProdsOnCategory(doc.categoryId);
-  // }
+  await calcStatsOnRelatedDocs(model, +productId, doc.categoryId);
 };
