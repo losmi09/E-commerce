@@ -14,7 +14,7 @@ model Product {
   name           String   @unique @db.VarChar(255)
   description    String?
   price          Decimal  @db.Decimal
-  coverImage     String?  @default("default.jpg")
+  coverImage     String?  @default("default.jpg") @map("cover_image")
   createdAt      DateTime @default(now()) @map("created_at")
   categoryId     Int?     @map("category_id")
   reviewsCount   Int      @default(0) @map("reviews_count")
@@ -98,7 +98,7 @@ model Review {
 
 model ProductImage {
   id                Int     @id @default(autoincrement())
-  fileName          String  @unique @db.Text
+  fileName          String  @unique @map("file_name") @db.Text
   extension         String  @db.VarChar(20)
   size              Int
   humanReadableSize String  @map("human_readable_size") @db.VarChar(255)
