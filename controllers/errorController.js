@@ -9,20 +9,28 @@ const handleExpiredToken = () =>
 const handleInvalidToken = () =>
   new AppError('Invalid token. Please log in again', 401);
 
-// In req.query
-const handleBadFilter = () => new AppError('Bad filter', 400);
+const handleInvalidQueryParam = () => new AppError('Invalid query param', 400);
 
 const handleUniqueConstraint = err => {
   const { modelName, target } = err.meta;
   let message = `${modelName} with this ${target[0]} already exists`;
-  if (modelName === 'Review') message = `You already reviewed this product`; // because of compound index
+
+  // In case of compound index
+  if (modelName === 'Review') message = `You already reviewed this product`;
+  if (modelName === 'CartItem')
+    message = `You already have this product in your cart`;
+
   return new AppError(message, 400);
 };
 
 const handleNotFoundRecord = err => {
   const { modelName, constraint } = err.meta;
   let fieldName = constraint?.split('_')[1];
-  if (modelName === 'ProductImage') fieldName = 'product';
+
+  // In case of compound index
+  if (modelName === 'ProductImage' || fieldName === 'items')
+    fieldName = 'product';
+
   return new AppError(`No ${fieldName} found with that ID`, 404);
 };
 
@@ -63,7 +71,8 @@ const globalErrorHandler = (err, req, res, next) => {
     let error = Object.create(err);
 
     if (err.name === 'PayloadTooLargeError') error = handleTooLargePayload();
-    if (err.message.includes('Unknown argument')) error = handleBadFilter();
+    if (err.message.includes('Unknown argument'))
+      error = handleInvalidQueryParam();
     if (err.message.includes('Unique constraint'))
       error = handleUniqueConstraint(err);
     if (err.code === 'P2025' || err.code === 'P2003')
