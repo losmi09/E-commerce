@@ -6,18 +6,15 @@ import sendData from '../utils/response/sendData.js';
 import throwErrorMessage from '../utils/error/throwErrorMessage.js';
 import * as crudRepository from '../repositories/crudRepository.js';
 import * as crudService from '../services/crudService.js';
-import * as reviewService from '../services/reviewService.js';
 
 export const getAll = model =>
   catchAsync(async (req, res) => {
-    const cartId = req.user ? req.user.cartId : undefined;
-
     // Add params to req.query so user can get only items in HIS cart or only reviews that BELONG to the product
     const query = await prepareQueryForUser({
       model,
       query: req.query,
       productId: req.params.productId,
-      cartId,
+      cartId: req.user?.id,
     });
 
     const doc = await crudRepository.findManyDocuments(model, query);
@@ -27,15 +24,11 @@ export const getAll = model =>
 
 export const getOne = model =>
   catchAsync(async (req, res, next) => {
-    const { id, productId } = req.params;
-
-    const cartId = req.user ? req.user.cartId : undefined;
-
     const doc = await crudRepository.findUniqueDocument({
       model,
-      id: +id,
-      productId: +productId,
-      cartId,
+      id: +req.params.id,
+      productId: +req.params.productId,
+      cartId: req.user?.id,
     });
 
     if (!doc) return next(new AppError(`No ${model} found with that ID`, 404));
@@ -72,44 +65,13 @@ export const updateOne = model =>
   });
 
 export const deleteOne = model =>
-  catchAsync(async (req, res, next) => {
-    const { id, productId } = req.params;
-
-    const { cartId } = req.user;
-
-    const doc = await crudRepository.findUniqueDocument({
+  catchAsync(async (req, res) => {
+    await crudService.deleteOne({
       model,
-      id: +id,
-      productId: +productId,
-      cartId,
+      id: +req.params.id,
+      productId: +req.params.productId,
+      cartId: req.user.cartId,
     });
-
-    if (!doc) return next(new AppError(`No ${model} found with that ID`, 404));
-
-    await crudRepository.deleteDocument({
-      model,
-      id: +id,
-      productId: +productId,
-      cartId,
-    });
-
-    if (model === 'review')
-      reviewService.calcReviewStats(+req.params.productId);
-
-    // if (model === 'user' || model === 'category')
-    //   deleteImage(pluralize(model), doc.image);
-
-    // if (model === 'product') {
-    //   const productImages = await prisma.productImage.findMany({
-    //     where: { productId: doc.id },
-    //   });
-
-    //   deleteImage('products', doc.coverImage);
-
-    //   productImages.forEach(img => deleteImage('products', img.fileName));
-
-    //   calcProdsOnCategory(doc.categoryId);
-    // }
 
     res.status(204).end();
   });
