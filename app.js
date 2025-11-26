@@ -17,7 +17,6 @@ import { router as userRouter } from './routes/userRoutes.js';
 import { router as categoryRouter } from './routes/categoryRoutes.js';
 import { router as cartRouter } from './routes/cartRoutes.js';
 
-
 // Initialize express app
 const app = express();
 
@@ -40,7 +39,6 @@ const authLimit = rateLimit({
   windowMs: +process.env.AUTH_RATE_LIMIT_WINDOW,
   message: 'Too many requests. Please try again later',
 });
-
 
 // Body parser (parses incoming request into req.body), limit body payload to 10 kilobytes
 app.use(express.json({ limit: '10kb' }));
