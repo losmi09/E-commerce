@@ -1,7 +1,7 @@
-import productSchema from '../../schemas-validation/productSchema.js';
-import categorySchema from '../../schemas-validation/categorySchema.js';
-import cartItemSchema from '../../schemas-validation/cartItemSchema.js';
-import reviewSchema from '../../schemas-validation/reviewSchema.js';
+import productSchema from '../../schemas/productSchema.js';
+import categorySchema from '../../schemas/categorySchema.js';
+import cartItemSchema from '../../schemas/cartItemSchema.js';
+import reviewSchema from '../../schemas/reviewSchema.js';
 
 const validateBody = (model, reqBody) => {
   let validation;

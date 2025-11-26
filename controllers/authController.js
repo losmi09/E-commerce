@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import userSchema from '../schemas-validation/userSchema.js';
+import userSchema from '../schemas/userSchema.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/error/appError.js';
 import sanitizeOutput from '../utils/sanitizeOutput.js';
