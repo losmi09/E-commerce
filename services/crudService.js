@@ -28,7 +28,7 @@ export const updateOne = async (model, params, data) => {
     data
   );
 
-  await calcStatsOnRelatedDocs(model, +params.productId);
+  await calcStatsOnRelatedDocs(model, +params.productId, data.categoryId);
 
   if (model === 'user') sanitizeOutput(updatedDoc);
 
