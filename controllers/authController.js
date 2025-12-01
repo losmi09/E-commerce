@@ -70,9 +70,7 @@ export const signin = catchAsync(async (req, res, next) => {
 });
 
 export const verifyEmail = catchAsync(async (req, res) => {
-  const { token } = req.params;
-
-  await authService.verifyEmail(token);
+  await authService.verifyEmail(req.params.token);
 
   sendMessage('Email verified successfully!', res);
 });
@@ -136,15 +134,13 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 export const resetPassword = catchAsync(async (req, res, next) => {
   const { password, passwordConfirm } = req.body;
 
-  const { token } = req.params;
-
   if (!password || !passwordConfirm)
     return next(
       new AppError('Please enter a new password and confirm it', 400)
     );
 
   const user = await authService.updatePassword({
-    token,
+    token: req.param.token,
     password,
     passwordConfirm,
   });
