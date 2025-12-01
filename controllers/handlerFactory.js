@@ -14,7 +14,7 @@ export const getAll = model =>
       model,
       query: req.query,
       productId: req.params.productId,
-      cartId: req.user?.id,
+      cartId: req.user?.cartId,
     });
 
     const doc = await crudRepository.findManyDocuments(model, query);
@@ -26,9 +26,9 @@ export const getOne = model =>
   catchAsync(async (req, res, next) => {
     const doc = await crudRepository.findUniqueDocument({
       model,
-      id: +req.params.id,
-      productId: +req.params.productId,
-      cartId: req.user?.id,
+      id: Number(req.params.id),
+      productId: Number(req.params.productId),
+      cartId: req.user?.cartId,
     });
 
     if (!doc) return next(new AppError(`No ${model} found with that ID`, 404));
@@ -45,7 +45,7 @@ export const createOne = model =>
     const newDoc = await crudService.createOne({
       model,
       data: value,
-      productId: req.params.productId,
+      productId: Number(req.params.productId),
       userId: req.user.id,
       cartId: req.user.cartId,
     });
@@ -68,8 +68,8 @@ export const deleteOne = model =>
   catchAsync(async (req, res) => {
     await crudService.deleteOne({
       model,
-      id: +req.params.id,
-      productId: +req.params.productId,
+      id: Number(req.params.id),
+      productId: Number(req.params.productId),
       cartId: req.user.cartId,
     });
 
