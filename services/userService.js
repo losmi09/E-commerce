@@ -14,7 +14,7 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-export const updateMe = async (reqBody, file, userId) => {
+export const updateUser = async (reqBody, file, userId) => {
   const filteredBody = filterObj(reqBody, 'firstName', 'lastName', 'email');
 
   if (file) filteredBody.image = file.fileName;
@@ -26,10 +26,10 @@ export const updateMe = async (reqBody, file, userId) => {
   return updatedUser;
 };
 
-export const deactivateMe = async userId =>
+export const deactivateUser = async userId =>
   await userRepository.deactivateUser(userId);
 
-export const deleteMe = async (userId, passwordCurrent) => {
+export const deleteUser = async (userId, passwordCurrent) => {
   const user = await userRepository.findUserById(userId);
 
   if (!(await authService.comparePasswords(passwordCurrent, user.password)))
