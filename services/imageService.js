@@ -56,7 +56,7 @@ const uploadProductImages = async (model, id, files) => {
 
       await resizeTheImage(file.buffer, 'products', fileName);
 
-      await setProductImage(+id, fileName, file.size);
+      await setProductImage(Number(id), fileName, file.size);
     })
   );
 };
@@ -71,19 +71,22 @@ export const prepareTheImage = async ({
   files,
   isCover = false, // Products can have one cover image
 }) => {
-  const doc = await crudRepository.findUniqueDocument(model, +id);
+  const doc = await crudRepository.findUniqueDocument({
+    model,
+    id: Number(id),
+  });
 
   if (!doc) throw new AppError(`No ${model} found with that ID`, 404);
 
-  const fileName = generateFileName(model, +id, isCover);
+  const fileName = generateFileName(model, Number(id), isCover);
 
   const buffer = getBuffer(model, file, files);
 
   await resizeTheImage(buffer, pluralize(model), fileName);
 
-  await setImage(model, +id, fileName);
+  await setImage(model, Number(id), fileName);
 
-  if (model === 'product') await uploadProductImages(model, +id, files);
+  if (model === 'product') await uploadProductImages(model, Number(id), files);
 
   return fileName;
 };

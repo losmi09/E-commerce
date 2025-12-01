@@ -4,7 +4,7 @@ import sort from './sort.js';
 const convertQueryValuesToNumbers = query =>
   Object.entries(query).forEach(entry => {
     const [key, value] = entry;
-    if (Number.isFinite(+value)) query[key] = +value;
+    if (Number.isFinite(Number(value))) query[key] = Number(value);
   });
 
 const prepareQuery = (query, model) => {

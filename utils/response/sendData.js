@@ -9,7 +9,9 @@ const convertToNumbers = data => {
     Object.entries(obj).map(entry => {
       const [key, value] = entry;
       newObj[key] =
-        Number.isFinite(+value) && key !== 'createdAt' ? +value : value;
+        Number.isFinite(Number(value)) && key !== 'createdAt'
+          ? Number(value)
+          : value;
     });
 
     return newObj;
@@ -26,9 +28,9 @@ const prepareData = (data, model) => {
     else sanitizeOutput(data);
   }
 
-  const dataObj = convertToNumbers(data);
+  const readyData = convertToNumbers(data);
 
-  return dataObj;
+  return readyData;
 };
 
 const sendData = (res, data, model, statusCode = 200) => {
@@ -39,7 +41,7 @@ const sendData = (res, data, model, statusCode = 200) => {
 
   res.status(statusCode).json({
     status: 'success',
-    results: data.length, // Will be ignored if data isn't an array
+    results: readyData.length, // Will be ignored if data isn't an array
     data: {
       [field]: readyData,
     },

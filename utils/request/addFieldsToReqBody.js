@@ -8,7 +8,7 @@ const addFieldsToReqBody = async ({
 }) => {
   if (model === 'cartItem') data.cartId = cartId;
   if (model === 'review') {
-    data.productId = +productId;
+    data.productId = Number(productId);
     data.userId = userId;
   }
 };
