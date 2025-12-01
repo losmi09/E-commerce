@@ -7,9 +7,11 @@ const validatePassword = async ({
   passwordConfirm,
   user,
 }) => {
+  const { password: userPassword } = user;
+
   if (
     passwordCurrent &&
-    !(await comparePasswords(passwordCurrent, user.password))
+    !(await comparePasswords(passwordCurrent, userPassword))
   )
     throw new AppError('Your current password is incorrect', 401);
 
@@ -19,7 +21,7 @@ const validatePassword = async ({
       400
     );
 
-  if (await comparePasswords(password, user.password))
+  if (await comparePasswords(password, userPassword))
     throw new AppError('New password cannot be the current one', 400);
 
   if (password !== passwordConfirm)

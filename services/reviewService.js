@@ -9,8 +9,8 @@ export const calcReviewStats = async productId => {
     },
   });
 
-  const average = stats._avg.rating;
-  const count = stats._count.rating;
+  const { rating: average } = stats._avg;
+  const { rating: count } = stats._count;
 
   await prisma.product.update({
     where: { id: productId },

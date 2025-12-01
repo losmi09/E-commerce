@@ -68,10 +68,10 @@ export const verifyEmail = async token => {
 
 export const protect = async token => {
   // Verify token
-  const decoded = await verifyToken(token);
+  const { id, iat } = await verifyToken(token);
 
   // Find user by id that is in token payload
-  const user = await userRepository.findUserById(decoded.id);
+  const user = await userRepository.findUserById(id);
 
   if (!user)
     throw new AppError('The user belonging to token does no longer exist', 401);
@@ -79,7 +79,7 @@ export const protect = async token => {
   // Check if password was changed after the token was issued
   if (
     user.passwordChangedAt &&
-    checkForPasswordChange(decoded.iat, user.passwordChangedAt)
+    checkForPasswordChange(iat, user.passwordChangedAt)
   )
     throw new AppError(
       "You've changed your password. Please sign in again",
@@ -124,13 +124,12 @@ export const updatePassword = async ({
   password,
   passwordConfirm,
 }) => {
-  let hashedToken;
+  let hashedToken, user;
 
-  if (token) hashedToken = hashToken(token);
-
-  const user = token
-    ? await userRepository.findUserByToken(hashedToken, 'password')
-    : await userRepository.findUserById(userId);
+  if (token) {
+    hashedToken = hashToken(token);
+    user = await userRepository.findUserByToken(hashedToken, 'password');
+  } else user = await userRepository.findUserById(userId);
 
   if (!user) {
     const errorMessage = token

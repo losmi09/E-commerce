@@ -1,9 +1,9 @@
 import prisma from '../server.js';
 
 export const getUserCartId = async userId => {
-  const cart = await prisma.cart.findUnique({ where: { userId } });
+  const { id } = await prisma.cart.findUnique({ where: { userId } });
 
-  return cart.id;
+  return id;
 };
 
 export const deleteUserCart = async userId =>
