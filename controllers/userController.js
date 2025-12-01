@@ -25,12 +25,12 @@ export const resizeUserPhoto = catchAsync(async (req, res, next) => {
 
 export const uploadUserPhoto = upload.single('image');
 
-export const getMe = (req, res, next) => {
+export const getCurrentUser = (req, res, next) => {
   req.params.id = req.user.id;
   next();
 };
 
-export const updateMe = catchAsync(async (req, res, next) => {
+export const updateCurrentUser = catchAsync(async (req, res, next) => {
   if (req.body.password)
     return next(
       new AppError(
@@ -39,7 +39,7 @@ export const updateMe = catchAsync(async (req, res, next) => {
       )
     );
 
-  const updatedUser = await userService.updateMe(
+  const updatedUser = await userService.updateUser(
     req.body,
     req.file,
     req.user.id
@@ -48,19 +48,19 @@ export const updateMe = catchAsync(async (req, res, next) => {
   sendData(res, updatedUser, 'user');
 });
 
-export const deactivateMe = catchAsync(async (req, res) => {
-  await userService.deactivateMe(req.user.id);
+export const deactivateCurrentUser = catchAsync(async (req, res) => {
+  await userService.deactivateUser(req.user.id);
 
   sendMessage('Your account has been successfully deactivated', res);
 });
 
-export const deleteMe = catchAsync(async (req, res, next) => {
+export const deleteCurrentUser = catchAsync(async (req, res, next) => {
   const { passwordCurrent } = req.body;
 
   if (!passwordCurrent)
     return next(new AppError('Please enter your password', 400));
 
-  await userService.deleteMe(req.user.id, passwordCurrent);
+  await userService.deleteUser(req.user.id, passwordCurrent);
 
   res.status(204).end();
 });
