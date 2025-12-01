@@ -4,7 +4,7 @@ import includeRelatedItems from '../utils/prisma/includeRelatedItems.js';
 import omitFields from '../utils/prisma/omitFields.js';
 import prisma from '../server.js';
 
-export const findManyDocuments = async (model, query) => {
+export const findManyDocuments = async (model, query = {}) => {
   const queryClone = structuredClone(query);
 
   // Mutates queryClone (safe)
