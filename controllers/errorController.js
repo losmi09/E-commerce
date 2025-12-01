@@ -36,6 +36,8 @@ const handleNotFoundRecord = err => {
 
 const handleUnexpectedFile = () => new AppError('Unexpected file', 400);
 
+const handleMissingFieldName = err => new AppError(err.message, 400);
+
 const sendErrorDev = (err, res) => {
   const { statusCode, status, message, stack } = err;
 
@@ -78,6 +80,7 @@ const globalErrorHandler = (err, req, res, next) => {
     if (err.code === 'P2025' || err.code === 'P2003')
       error = handleNotFoundRecord(err);
     if (err.code === 'LIMIT_UNEXPECTED_FILE') error = handleUnexpectedFile();
+    if (err.code === 'MISSING_FIELD_NAME') error = handleMissingFieldName(err);
     if (err.name === 'TokenExpiredError') error = handleExpiredToken();
     if (err.name === 'JsonWebTokenError' || err instanceof SyntaxError)
       error = handleInvalidToken();
