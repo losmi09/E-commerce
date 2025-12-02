@@ -7,18 +7,17 @@ export const router = Router();
 
 router.use(authController.protect);
 
-router.get('/me', userController.getMe, userController.getUser);
+router
+  .route('/me')
+  .get(userController.getCurrentUser, userController.getUser)
+  .patch(
+    userController.uploadUserPhoto,
+    userController.resizeUserPhoto,
+    userController.updateCurrentUser
+  )
+  .delete(userController.deleteCurrentUser);
 
-router.patch(
-  '/updateMe',
-  userController.uploadUserPhoto,
-  userController.resizeUserPhoto,
-  userController.updateMe
-);
-
-router.patch('/deactivateMe', userController.deactivateMe);
-
-router.delete('/deleteMe', userController.deleteMe);
+router.patch('/deactivateMe', userController.deactivateCurrentUser);
 
 router.use(authController.restrictTo('admin'));
 
