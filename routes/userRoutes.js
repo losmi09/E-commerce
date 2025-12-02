@@ -17,7 +17,7 @@ router
   )
   .delete(userController.deleteCurrentUser);
 
-router.patch('/deactivateMe', userController.deactivateCurrentUser);
+router.patch('/me/deactivate', userController.deactivateCurrentUser);
 
 router.use(authMiddleware.restrictTo('admin'));
 
