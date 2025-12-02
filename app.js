@@ -28,15 +28,15 @@ app.use(cors());
 
 // Rate limit
 const limit = rateLimit({
-  max: +process.env.RATE_LIMIT_MAX,
-  windowMs: +process.env.RATE_LIMIT_WINDOW,
+  max: Number(process.env.RATE_LIMIT_MAX),
+  windowMs: Number(process.env.RATE_LIMIT_WINDOW),
   message: 'Too many requests. Please try again later',
 });
 
 // Rate limit for auth routes
 const authLimit = rateLimit({
-  max: +process.env.AUTH_RATE_LIMIT_MAX,
-  windowMs: +process.env.AUTH_RATE_LIMIT_WINDOW,
+  max: Number(process.env.AUTH_RATE_LIMIT_MAX),
+  windowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW),
   message: 'Too many requests. Please try again later',
 });
 
