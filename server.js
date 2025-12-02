@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { createClient } from 'redis';
 import app from './app.js';
 
 process.on('uncaughtException', err => {
@@ -8,6 +9,12 @@ process.on('uncaughtException', err => {
 });
 
 const prisma = new PrismaClient();
+
+export const client = createClient(6379);
+
+client.on('error', () => console.log('Redis Client Error'));
+
+await client.connect();
 
 const port = process.env.PORT || 8000;
 
