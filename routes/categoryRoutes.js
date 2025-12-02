@@ -2,12 +2,13 @@ import { Router } from 'express';
 import * as categoryController from '../controllers/categoryController.js';
 import * as authController from '../controllers/authController.js';
 import isIdNumber from '../middlewares/isIdNumber.js';
+import { cacheAll, cacheOne } from '../middlewares/caching.js';
 
 export const router = Router();
 
 router
   .route('/')
-  .get(categoryController.getAllCategories)
+  .get(cacheAll('category'), categoryController.getAllCategories)
   .post(
     authController.protect,
     authController.restrictTo('admin'),
@@ -18,7 +19,7 @@ router.use(authController.protect);
 
 router
   .route('/:id')
-  .get(isIdNumber, categoryController.getCategory)
+  .get(isIdNumber, cacheOne('category'), categoryController.getCategory)
   .patch(
     isIdNumber,
     authController.restrictTo('admin'),
