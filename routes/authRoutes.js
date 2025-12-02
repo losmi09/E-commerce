@@ -16,4 +16,4 @@ router.use(authMiddleware.protect);
 
 router.post('/logout', authController.logout);
 
-router.patch('/updateMyPassword', authController.updateMyPassword);
+router.patch('/me/password', authController.updateCurrentUserPassword);
