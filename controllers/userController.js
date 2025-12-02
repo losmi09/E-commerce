@@ -34,7 +34,7 @@ export const updateCurrentUser = catchAsync(async (req, res, next) => {
   if (req.body.password)
     return next(
       new AppError(
-        'This route is not for password updates. Please use /auth/updateMyPassword',
+        'This route is not for password updates. Please use /me/password',
         400
       )
     );
