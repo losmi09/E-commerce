@@ -10,11 +10,20 @@ process.on('uncaughtException', err => {
 
 const prisma = new PrismaClient();
 
-export const client = createClient(6379);
+export const client = createClient({
+  port: Number(process.env.REDIS_PORT) || 6379,
+  host: process.env.REDIS_HOST || '127.0.0.1',
+});
 
-client.on('error', () => console.log('Redis Client Error'));
+const connectRedisClient = async () => {
+  try {
+    await client.connect();
+  } catch (err) {
+    console.log('Redis Client Error', err);
+  }
+};
 
-await client.connect();
+await connectRedisClient();
 
 const port = process.env.PORT || 8000;
 
