@@ -17,9 +17,9 @@ export const hashPassword = async password => await bcrypt.hash(password, 12);
 export const comparePasswords = async (password, hashedPassword) =>
   await bcrypt.compare(password, hashedPassword);
 
-export const checkForPasswordChange = (JWTTimestamp, passwordChangeTimeStamp) =>
+export const checkForPasswordChange = (JWTTimestamp, passwordChangeTimestamp) =>
   JWTTimestamp * 1000 <
-  new Date(passwordChangeTimeStamp - 2 * 60 * 60 * 1000).getTime();
+  new Date(passwordChangeTimestamp - 2 * 60 * 60 * 1000).getTime();
 
 export const hashToken = token =>
   crypto.createHash('sha256').update(token).digest('hex');
