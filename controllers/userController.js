@@ -7,7 +7,7 @@ import sendMessage from '../utils/response/sendMessage.js';
 import generateFileName from '../utils/image/generateFileName.js';
 import sendData from '../utils/response/sendData.js';
 import * as userService from '../services/userService.js';
-import * as factory from './handlerFactory.js';
+import * as crudController from './crudController.js';
 
 const storage = multer.memoryStorage();
 
@@ -65,6 +65,6 @@ export const deleteCurrentUser = catchAsync(async (req, res, next) => {
   res.status(204).end();
 });
 
-export const getAllUsers = factory.getAll('user');
-export const getUser = factory.getOne('user');
-export const deleteUser = factory.deleteOne('user');
+export const getAllUsers = crudController.getAll('user');
+export const getUser = crudController.getOne('user');
+export const deleteUser = crudController.deleteOne('user');

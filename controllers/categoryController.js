@@ -1,7 +1,7 @@
 import multer from 'multer';
 import fileFilter from '../utils/image/fileFilter.js';
 import catchAsync from '../utils/catchAsync.js';
-import * as factory from './handlerFactory.js';
+import * as crudController from './crudController.js';
 import * as imageService from '../services/imageService.js';
 
 const storage = multer.memoryStorage();
@@ -22,8 +22,8 @@ export const resizeCategoryImage = catchAsync(async (req, res, next) => {
   next();
 });
 
-export const getAllCategories = factory.getAll('category');
-export const getCategory = factory.getOne('category');
-export const createCategory = factory.createOne('category');
-export const updateCategory = factory.updateOne('category');
-export const deleteCategory = factory.deleteOne('category');
+export const getAllCategories = crudController.getAll('category');
+export const getCategory = crudController.getOne('category');
+export const createCategory = crudController.createOne('category');
+export const updateCategory = crudController.updateOne('category');
+export const deleteCategory = crudController.deleteOne('category');

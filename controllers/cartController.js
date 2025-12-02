@@ -1,6 +1,6 @@
-import * as factory from './handlerFactory.js';
+import * as crudController from './crudController.js';
 
-export const getCartItems = factory.getAll('cartItem');
-export const getCartItem = factory.getOne('cartItem');
-export const addToCart = factory.createOne('cartItem');
-export const removeFromCart = factory.deleteOne('cartItem');
+export const getCartItems = crudController.getAll('cartItem');
+export const getCartItem = crudController.getOne('cartItem');
+export const addToCart = crudController.createOne('cartItem');
+export const removeFromCart = crudController.deleteOne('cartItem');

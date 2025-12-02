@@ -1,7 +1,7 @@
-import * as factory from './handlerFactory.js';
+import * as crudController from './crudController.js';
 
-export const getAllReviews = factory.getAll('review');
-export const getReview = factory.getOne('review');
-export const createReview = factory.createOne('review');
-export const updateReview = factory.updateOne('review');
-export const deleteReview = factory.deleteOne('review');
+export const getAllReviews = crudController.getAll('review');
+export const getReview = crudController.getOne('review');
+export const createReview = crudController.createOne('review');
+export const updateReview = crudController.updateOne('review');
+export const deleteReview = crudController.deleteOne('review');

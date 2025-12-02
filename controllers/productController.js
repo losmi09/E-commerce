@@ -1,5 +1,5 @@
 import multer from 'multer';
-import * as factory from './handlerFactory.js';
+import * as crudController from './crudController.js';
 import fileFilter from '../utils/image/fileFilter.js';
 import catchAsync from '../utils/catchAsync.js';
 import * as imageService from '../services/imageService.js';
@@ -26,8 +26,8 @@ export const resizeProductImage = catchAsync(async (req, res, next) => {
   next();
 });
 
-export const getAllProducts = factory.getAll('product');
-export const getProduct = factory.getOne('product');
-export const createProduct = factory.createOne('product');
-export const updateProduct = factory.updateOne('product');
-export const deleteProduct = factory.deleteOne('product');
+export const getAllProducts = crudController.getAll('product');
+export const getProduct = crudController.getOne('product');
+export const createProduct = crudController.createOne('product');
+export const updateProduct = crudController.updateOne('product');
+export const deleteProduct = crudController.deleteOne('product');
