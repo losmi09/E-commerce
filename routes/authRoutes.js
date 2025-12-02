@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as authController from '../controllers/authController.js';
+import * as authMiddleware from '../middlewares/auth.js';
 
 export const router = Router();
 
@@ -11,7 +12,7 @@ router.patch('/verifyEmail/:token', authController.verifyEmail);
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
 
-router.use(authController.protect);
+router.use(authMiddleware.protect);
 
 router.post('/logout', authController.logout);
 

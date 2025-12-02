@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import * as userController from '../controllers/userController.js';
-import * as authController from '../controllers/authController.js';
+import * as authMiddleware from '../middlewares/auth.js';
 import isIdNumber from '../middlewares/isIdNumber.js';
 
 export const router = Router();
 
-router.use(authController.protect);
+router.use(authMiddleware.protect);
 
 router
   .route('/me')
@@ -19,7 +19,7 @@ router
 
 router.patch('/deactivateMe', userController.deactivateCurrentUser);
 
-router.use(authController.restrictTo('admin'));
+router.use(authMiddleware.restrictTo('admin'));
 
 router.get('/', userController.getAllUsers);
 

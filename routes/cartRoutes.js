@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import * as cartController from '../controllers/cartController.js';
-import * as authController from '../controllers/authController.js';
+import * as authMiddleware from '../middlewares/auth.js';
 import isIdNumber from '../middlewares/isIdNumber.js';
 
 export const router = Router();
 
-router.use(authController.protect);
+router.use(authMiddleware.protect);
 
 router
   .route('/items')
