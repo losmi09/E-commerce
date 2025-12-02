@@ -115,7 +115,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
   sendAuthResponse(user, 200, res);
 });
 
-export const updateMyPassword = catchAsync(async (req, res, next) => {
+export const updateCurrentUserPassword = catchAsync(async (req, res, next) => {
   const { passwordCurrent, password, passwordConfirm } = req.body;
 
   if (!passwordCurrent || !password || !passwordConfirm)
