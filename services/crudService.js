@@ -4,10 +4,11 @@ import * as reviewService from './reviewService.js';
 import * as categoryService from './categoryService.js';
 import AppError from '../utils/error/appError.js';
 import sanitizeOutput from '../utils/sanitizeOutput.js';
+import { reCache } from '../middlewares/caching.js';
 
 const calcStatsOnRelatedDocs = async (model, productId, categoryId) => {
   if (model === 'review') await reviewService.calcReviewStats(productId);
-  if (model === 'product')
+  if (model === 'product' && categoryId)
     await categoryService.calcProdsOnCategory(categoryId);
 };
 
@@ -16,7 +17,10 @@ export const createOne = async ({ model, data, productId, userId, cartId }) => {
 
   const newDoc = await crudRepository.createDocument(model, data);
 
-  await calcStatsOnRelatedDocs(model, +productId, data.categoryId);
+  if (model === 'product' || model === 'category' || model === 'review')
+    await reCache(model, newDoc.id);
+
+  await calcStatsOnRelatedDocs(model, productId, data.categoryId);
 
   return newDoc;
 };
@@ -24,11 +28,14 @@ export const createOne = async ({ model, data, productId, userId, cartId }) => {
 export const updateOne = async (model, params, data) => {
   const updatedDoc = await crudRepository.updateDocument(
     model,
-    +params.id,
+    Number(params.id),
     data
   );
 
-  await calcStatsOnRelatedDocs(model, +params.productId, data.categoryId);
+  if (model === 'product' || model === 'category' || model === 'review')
+    await reCache(model, updatedDoc.id);
+
+  await calcStatsOnRelatedDocs(model, Number(params.productId));
 
   if (model === 'user') sanitizeOutput(updatedDoc);
 
@@ -38,8 +45,8 @@ export const updateOne = async (model, params, data) => {
 export const deleteOne = async ({ model, id, productId, cartId }) => {
   const doc = await crudRepository.findUniqueDocument({
     model,
-    id: +id,
-    productId: +productId,
+    id,
+    productId,
     cartId,
   });
 
@@ -47,10 +54,13 @@ export const deleteOne = async ({ model, id, productId, cartId }) => {
 
   await crudRepository.deleteDocument({
     model,
-    id: +id,
-    productId: +productId,
+    id,
+    productId,
     cartId,
   });
 
-  await calcStatsOnRelatedDocs(model, +productId, doc.categoryId);
+  if (model === 'product' || model === 'category' || model === 'review')
+    await reCache(model, doc.id);
+
+  await calcStatsOnRelatedDocs(model, productId, doc.categoryId);
 };
