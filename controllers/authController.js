@@ -100,6 +100,8 @@ export const verifyEmail = catchAsync(async (req, res) => {
 export const logout = catchAsync(async (req, res) => {
   clearRefreshTokenCookie(res);
 
+  await userRepository.revokeRefreshToken(req.user.id);
+
   sendMessage('User logged out successfully', res);
 });
 
