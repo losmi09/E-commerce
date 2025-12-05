@@ -4,18 +4,18 @@ import * as authService from '../services/authService.js';
 import * as cartRepository from '../repositories/cartRepository.js';
 
 export const protect = catchAsync(async (req, res, next) => {
-  let token;
+  let accessToken;
 
-  // Extract token from authorization header
+  // Extract access token from authorization header
   if (req.headers?.authorization?.startsWith('Bearer'))
-    token = req.headers.authorization.split(' ')[1];
+    accessToken = req.headers.authorization.split(' ')[1];
 
-  if (!token)
+  if (!accessToken)
     return next(
       new AppError("You're logged out. Please log in to get access", 401)
     );
 
-  const user = await authService.protect(token);
+  const user = await authService.protect(accessToken);
 
   req.user = user;
 
