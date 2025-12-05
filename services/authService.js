@@ -52,7 +52,7 @@ export const createToken = async (user, field) => {
   return token;
 };
 
-export const signup = async value => {
+export const register = async value => {
   const { firstName, lastName, email, password } = value;
 
   const hashedPassword = await hashPassword(password);

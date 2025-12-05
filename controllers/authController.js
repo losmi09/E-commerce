@@ -46,12 +46,12 @@ const sendAuthResponse = async (user, statusCode, res) => {
   respondWithUser(statusCode, accessToken, user, res);
 };
 
-export const signup = catchAsync(async (req, res) => {
+export const register = catchAsync(async (req, res) => {
   const { error, value } = userSchema.validate(req.body);
 
   if (error) throwErrorMessage(error);
 
-  const newUser = await authService.signup(value);
+  const newUser = await authService.register(value);
 
   await sendAuthResponse(newUser, 201, res);
 });
