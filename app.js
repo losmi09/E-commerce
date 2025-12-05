@@ -3,6 +3,7 @@ import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import swaggerDocument from './swagger.json' with {type: 'json'};
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import qs from 'qs';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -42,6 +43,8 @@ const authLimit = rateLimit({
 
 // Body parser (parses incoming request into req.body), limit body payload to 10 kilobytes
 app.use(express.json({ limit: '10kb' }));
+
+app.use(cookieParser());
 
 // Data sanitization against XSS
 app.use(xss());
