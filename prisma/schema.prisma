@@ -57,8 +57,10 @@ model User {
   isVerified                   Boolean   @default(false) @map("is_verified")
   passwordChangedAt            DateTime? @map("password_changed_at")
   isActive                     Boolean   @default(true) @map("is_active")
-  cart                         Cart[]
-  Review                       Review[]
+  refreshToken                 String?   @map("refresh_token") @db.Text
+
+  cart   Cart[]
+  Review Review[]
 
   @@map("users")
 }
