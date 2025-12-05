@@ -129,7 +129,7 @@ export const protect = async accessToken => {
     checkForPasswordChange(iat, user.passwordChangedAt)
   )
     throw new AppError(
-      "You've changed your password. Please sign in again",
+      "You've changed your password. Please log in again",
       401
     );
 
