@@ -101,3 +101,18 @@ export const updateUserPassword = async ({ userId, token, hashedPassword }) => {
     },
   });
 };
+
+export const findUserByRefreshToken = async refreshToken =>
+  await prisma.user.findFirst({ where: { refreshToken } });
+
+export const revokeRefreshToken = async userId =>
+  await prisma.user.update({
+    where: { id: userId },
+    data: { refreshToken: null },
+  });
+
+export const setRefreshToken = async (userId, refreshToken) =>
+  await prisma.user.update({
+    where: { id: userId },
+    data: { refreshToken },
+  });
