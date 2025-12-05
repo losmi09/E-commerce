@@ -1,4 +1,3 @@
-import jwt from 'jsonwebtoken';
 import userSchema from '../schemas/userSchema.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/error/appError.js';
@@ -8,13 +7,8 @@ import * as userRepository from '../repositories/userRepository.js';
 import * as authService from '../services/authService.js';
 import throwErrorMessage from '../utils/error/throwErrorMessage.js';
 
-const signToken = id =>
-  jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
-
-const sendCookie = (token, res) => {
-  res.cookie('jwt', token, {
+const sendRefreshTokenCookie = (refreshToken, res) => {
+  res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     expires: new Date(Date.now() + Number(process.env.COOKIE_EXPIRES_IN)),
     secure: process.env.NODE_ENV === 'production',
@@ -22,25 +16,34 @@ const sendCookie = (token, res) => {
   });
 };
 
-const respondWithUser = (statusCode, token, user, res) => {
+const clearRefreshTokenCookie = res => {
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'Strict',
+  });
+};
+
+const respondWithUser = (statusCode, accessToken, user, res) => {
   // Sanitize user's sensitive data
   sanitizeOutput(user);
 
   res.status(statusCode).json({
     status: 'success',
-    token,
+    accessToken,
     data: { user },
   });
 };
 
-const sendAuthResponse = (user, statusCode, res) => {
-  // Sign JWT
-  const token = signToken(user.id);
+const sendAuthResponse = async (user, statusCode, res) => {
+  const { id: userId } = user;
 
-  // send JWT in httpOnly cookie
-  sendCookie(token, res);
+  const { accessToken, refreshToken } =
+    await authService.prepareAccessAndRefreshToken(userId);
 
-  respondWithUser(statusCode, token, user, res);
+  sendRefreshTokenCookie(refreshToken, res);
+
+  respondWithUser(statusCode, accessToken, user, res);
 };
 
 export const signup = catchAsync(async (req, res) => {
@@ -50,7 +53,7 @@ export const signup = catchAsync(async (req, res) => {
 
   const newUser = await authService.signup(value);
 
-  sendAuthResponse(newUser, 201, res);
+  await sendAuthResponse(newUser, 201, res);
 });
 
 export const signin = catchAsync(async (req, res, next) => {
@@ -65,7 +68,27 @@ export const signin = catchAsync(async (req, res, next) => {
   if (!user || !(await authService.comparePasswords(password, user.password)))
     return next(new AppError('Incorrect email or password', 401));
 
-  sendAuthResponse(user, 200, res);
+  await sendAuthResponse(user, 200, res);
+});
+
+export const refreshToken = catchAsync(async (req, res, next) => {
+  const { refreshToken } = req.cookies;
+
+  if (!refreshToken)
+    return next(new AppError('Refresh token is required', 401));
+
+  clearRefreshTokenCookie(res);
+
+  const { newAccessToken, newRefreshToken } = await authService.refreshToken(
+    refreshToken
+  );
+
+  sendRefreshTokenCookie(newRefreshToken, res);
+
+  res.status(200).json({
+    status: 'success',
+    accessToken: newAccessToken,
+  });
 });
 
 export const verifyEmail = catchAsync(async (req, res) => {
@@ -75,11 +98,7 @@ export const verifyEmail = catchAsync(async (req, res) => {
 });
 
 export const logout = catchAsync(async (req, res) => {
-  res.clearCookie('jwt', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'Strict',
-  });
+  clearRefreshTokenCookie(res);
 
   sendMessage('User logged out successfully', res);
 });
@@ -107,12 +126,12 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     );
 
   const user = await authService.updatePassword({
-    token: req.param.token,
+    token: req.params.token,
     password,
     passwordConfirm,
   });
 
-  sendAuthResponse(user, 200, res);
+  await sendAuthResponse(user, 200, res);
 });
 
 export const updateCurrentUserPassword = catchAsync(async (req, res, next) => {
@@ -133,5 +152,5 @@ export const updateCurrentUserPassword = catchAsync(async (req, res, next) => {
     passwordConfirm,
   });
 
-  sendAuthResponse(user, 200, res);
+  await sendAuthResponse(user, 200, res);
 });

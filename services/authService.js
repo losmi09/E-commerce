@@ -7,10 +7,28 @@ import * as emailService from './emailService.js';
 import * as userRepository from '../repositories/userRepository.js';
 import * as cartRepository from '../repositories/cartRepository.js';
 
-const verifyToken = async token =>
-  await jwt.verify(token, process.env.JWT_SECRET, {
-    algorithms: ['HS256'],
+export const generateAccessToken = userId =>
+  jwt.sign({ id: userId }, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN,
+    algorithm: 'HS256',
   });
+
+export const generateRefreshToken = userId =>
+  jwt.sign({ id: userId }, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
+    algorithm: 'HS256',
+  });
+
+export const prepareAccessAndRefreshToken = async userId => {
+  const accessToken = generateAccessToken(userId);
+  const refreshToken = generateRefreshToken(userId);
+
+  const hashedRefreshToken = hashToken(refreshToken);
+
+  await userRepository.setRefreshToken(userId, hashedRefreshToken);
+
+  return { accessToken, refreshToken };
+};
 
 export const hashPassword = async password => await bcrypt.hash(password, 12);
 
@@ -27,7 +45,7 @@ export const hashToken = token =>
 export const createToken = async (user, field) => {
   const token = crypto.randomBytes(32).toString('hex');
 
-  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  const hashedToken = hashToken(token);
 
   await userRepository.setUserToken(field, hashedToken, user.id);
 
@@ -56,6 +74,29 @@ export const signup = async value => {
   return newUser;
 };
 
+export const refreshToken = async refreshToken => {
+  // Verify refresh token
+  const { id: userId } = await jwt.verify(
+    refreshToken,
+    process.env.REFRESH_TOKEN_SECRET
+  );
+
+  const hashedRefreshToken = hashToken(refreshToken);
+
+  const user = await userRepository.findUserByRefreshToken(hashedRefreshToken);
+
+  if (!user) {
+    // Token reuse detected
+    await userRepository.revokeRefreshToken(userId);
+    throw new AppError("You can't use the same refresh token twice", 403);
+  }
+
+  const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+    await prepareAccessAndRefreshToken(userId);
+
+  return { newAccessToken, newRefreshToken };
+};
+
 export const verifyEmail = async token => {
   const hashedToken = hashToken(token);
 
@@ -66,9 +107,15 @@ export const verifyEmail = async token => {
   await userRepository.setUserVerified(user.id);
 };
 
-export const protect = async token => {
-  // Verify token
-  const { id, iat } = await verifyToken(token);
+export const protect = async accessToken => {
+  // Verify access token
+  const { id, iat } = await jwt.verify(
+    accessToken,
+    process.env.ACCESS_TOKEN_SECRET,
+    {
+      algorithms: ['HS256'],
+    }
+  );
 
   // Find user by id that is in token payload
   const user = await userRepository.findUserById(id);
