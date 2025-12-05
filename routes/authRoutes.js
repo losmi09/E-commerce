@@ -5,7 +5,7 @@ import * as authMiddleware from '../middlewares/auth.js';
 export const router = Router();
 
 router.post('/register', authController.register);
-router.post('/signin', authController.signin);
+router.post('/login', authController.login);
 
 router.patch('/verifyEmail/:token', authController.verifyEmail);
 
