@@ -12,6 +12,8 @@ router.patch('/verifyEmail/:token', authController.verifyEmail);
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
 
+router.post('/refreshToken', authController.refreshToken);
+
 router.use(authMiddleware.protect);
 
 router.post('/logout', authController.logout);
