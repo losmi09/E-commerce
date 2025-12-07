@@ -183,7 +183,7 @@ export const updatePassword = async ({
       ? 'Token is invalid or has expired'
       : 'No user found with that ID';
 
-    throw new AppError(errorMessage, 400);
+    throw new AppError(errorMessage, token ? 400 : 404);
   }
 
   await validatePassword({ passwordCurrent, password, passwordConfirm, user });
