@@ -25,7 +25,10 @@ const app = express();
 app.use(helmet());
 
 // Set up CORS (Access-Control-Allow-Origin header)
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true
+}));
 
 // Rate limit
 const limit = rateLimit({
